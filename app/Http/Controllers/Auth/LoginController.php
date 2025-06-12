@@ -8,15 +8,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class LoginController extends Controller
 {
+    /**
+     * Muestra el formulario de inicio de sesión.
+     *
+     * @return \Illuminate\View\View
+     */
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
+    /**
+     * Maneja una solicitud de inicio de sesión.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function login(Request $request)
     {
         $request->validate([
@@ -35,46 +45,33 @@ class LoginController extends Controller
 
         if (!$user) {
             Log::warning("Intento de login con CI inexistente: {$ci}");
-            return back()->withErrors([
-                'ci' => 'Credenciales incorrectas.',
-            ]);
+            return back()->withErrors(['ci' => 'Credenciales incorrectas.']);
         }
 
-        // Verificar si el usuario puede hacer login
+        // Verificar si el usuario puede hacer login (activo y no bloqueado)
         if (!$user->canLogin()) {
             if (!$user->active && !$user->temporary_lockout_until) {
-                // Usuario desactivado manualmente por admin
                 Log::warning("Intento de login de usuario desactivado: {$ci}");
-                return back()->withErrors([
-                    'ci' => 'Su cuenta ha sido desactivada. Contacte al administrador.',
-                ]);
-            } elseif ($user->isTemporarilyLocked()) {
-                // Usuario bloqueado temporalmente
+                return back()->withErrors(['ci' => 'Su cuenta ha sido desactivada. Contacte al administrador.']);
+            }
+            if ($user->isTemporarilyLocked()) {
                 $minutesLeft = $user->getTimeUntilUnlock();
                 Log::warning("Intento de login de usuario temporalmente bloqueado: {$ci}");
-                return back()->withErrors([
-                    'ci' => "Su cuenta está temporalmente bloqueada. Intente nuevamente en {$minutesLeft} minutos.",
-                ]);
+                return back()->withErrors(['ci' => "Su cuenta está temporalmente bloqueada. Intente nuevamente en {$minutesLeft} minutos."]);
             }
         }
 
         // Verificar contraseña
         if (!Hash::check($password, $user->password)) {
-            // Contraseña incorrecta - incrementar intentos
             $user->incrementLoginAttempts();
-            
             $attemptsLeft = 3 - $user->login_attempts;
             
             Log::warning("Intento de login fallido para CI: {$ci}. Intentos: {$user->login_attempts}");
             
             if ($user->login_attempts >= 3) {
-                return back()->withErrors([
-                    'ci' => 'Ha excedido el número máximo de intentos. Su cuenta ha sido bloqueada por 10 minutos.',
-                ]);
+                return back()->withErrors(['ci' => 'Ha excedido el número máximo de intentos. Su cuenta ha sido bloqueada por 10 minutos.']);
             } else {
-                return back()->withErrors([
-                    'ci' => "Credenciales incorrectas. Le quedan {$attemptsLeft} intentos.",
-                ]);
+                return back()->withErrors(['ci' => "Credenciales incorrectas. Le quedan {$attemptsLeft} intentos."]);
             }
         }
 
@@ -82,15 +79,22 @@ class LoginController extends Controller
         $user->resetLoginAttempts();
         Auth::login($user);
 
-        Log::info("Login exitoso para usuario: {$ci} - Rol: {$user->role_name}");
+        $roleName = strtolower($user->role_name ?? optional($user->rol)->nombre_rol);
+        Log::info("Login exitoso para usuario: {$ci} - Rol: {$roleName}");
 
         // Redireccionar según el rol
-        return $this->redirectUserBasedOnRole($user);
+        return $this->redirectBasedOnRole($user);
     }
 
-    protected function redirectUserBasedOnRole($user)
+    /**
+     * Redirige al usuario a su dashboard correspondiente basado en su rol.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    protected function redirectBasedOnRole($user)
     {
-        $roleName = strtolower($user->role_name);
+        $roleName = strtolower($user->role_name ?? optional($user->rol)->nombre_rol);
         
         switch ($roleName) {
             case 'admin':
@@ -102,10 +106,18 @@ class LoginController extends Controller
             case 'asistente-social':
                 return redirect()->route('asistente-social.dashboard');
             default:
-                return redirect()->route('dashboard');
+                Log::error("Rol no reconocido '{$roleName}' para el usuario CI: {$user->ci}. Cerrando sesión.");
+                Auth::logout();
+                return redirect()->route('login')->withErrors(['ci' => 'Tu rol no es válido. Contacta al administrador.']);
         }
     }
 
+    /**
+     * Cierra la sesión del usuario.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function logout(Request $request)
     {
         $user = Auth::user();

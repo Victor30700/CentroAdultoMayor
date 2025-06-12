@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\GestionarUsuariosController;
 use App\Http\Controllers\RegistrarCasoController;
 use App\Http\Controllers\GestionarRolesController;
+use App\Http\Controllers\ProfileController; // Asegúrate de que este controlador exista
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -23,17 +24,14 @@ use Illuminate\Support\Facades\Log;
 //==========================================================================
 // RUTAS PARA INVITADOS (NO AUTENTICADOS)
 //==========================================================================
-// El middleware 'guest' asegura que estas rutas solo sean accesibles para
-// usuarios que NO han iniciado sesión. Si un usuario autenticado intenta
-// acceder, Laravel lo redirigirá a '/dashboard' automáticamente.
 Route::middleware('guest')->group(function () {
     
-    // Ruta de bienvenida principal. Esta es la puerta de entrada para nuevos usuarios.
+    // Ruta de bienvenida principal
     Route::get('/', function () {
         return view('welcome');
     })->name('home');
 
-    // Rutas para el formulario de inicio de sesión.
+    // Rutas para el formulario de inicio de sesión
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
 
@@ -43,23 +41,25 @@ Route::middleware('guest')->group(function () {
 //==========================================================================
 // RUTAS PROTEGIDAS (REQUIEREN AUTENTICACIÓN)
 //==========================================================================
-// El middleware 'auth' es el guardián principal. NINGUNA ruta dentro de
-// este grupo puede ser accedida sin haber iniciado sesión previamente.
 Route::middleware('auth')->group(function () {
 
-    // Redirige la ruta raíz al dashboard si el usuario ya está autenticado.
+    // Redirige la ruta raíz al dashboard si el usuario ya está autenticado
     Route::get('/', function () {
         return redirect()->route('dashboard');
     });
 
-    // Ruta para cerrar la sesión del usuario.
+    // Ruta para cerrar la sesión del usuario
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Dashboard general que actúa como un distribuidor según el rol del usuario.
+    // **NUEVA RUTA PARA EL PERFIL DEL USUARIO**
+    // Esta ruta es necesaria para el enlace "Perfil" en el header de los usuarios
+    Route::get('/perfil', [ProfileController::class, 'show'])->name('profile.show');
+
+    // Dashboard general que actúa como un distribuidor según el rol del usuario
     Route::get('/dashboard', function () {
         $user = Auth::user();
         
-        // Verificación de seguridad: si un usuario no tiene rol, se cierra su sesión.
+        // Verificación de seguridad: si un usuario no tiene rol, se cierra su sesión
         if (!$user->role_name && !$user->rol) {
              Log::warning("El usuario con CI {$user->ci} intentó acceder sin un rol asignado.");
              Auth::logout();
@@ -79,13 +79,15 @@ Route::middleware('auth')->group(function () {
                 return redirect()->route('asistente-social.dashboard');
             default:
                 Log::warning("Usuario con CI {$user->ci} tiene un rol no reconocido: {$roleName}");
-                return view('dashboard'); // Vista genérica por si acaso.
+                // Si no se reconoce el rol, se le redirige a una vista de error o a la página de login
+                Auth::logout();
+                return redirect()->route('login')->withErrors(['ci' => 'Rol no reconocido.']);
         }
     })->name('dashboard');
 
 
     //-----------------------------------------------------
-    // RUTAS CON PREFIJO DE ADMINISTRADOR (ACCESO POR ROL O PERMISO)
+    // RUTAS CON PREFIJO DE ADMINISTRADOR
     //-----------------------------------------------------
     Route::prefix('admin')->name('admin.')->group(function () {
 
@@ -125,7 +127,6 @@ Route::middleware('auth')->group(function () {
         });
 
         // Rutas para "Registrar Caso" protegidas por permiso específico.
-        // Accesible para 'admin' y cualquier otro rol con el permiso 'modulo.proteccion.registrar'.
         Route::middleware('permission:modulo.proteccion.registrar')->group(function () {
             Route::get('/casos', [RegistrarCasoController::class, 'index'])->name('caso.index');
             Route::get('/caso/{id}', [RegistrarCasoController::class, 'show'])->name('caso.show');
@@ -134,39 +135,27 @@ Route::middleware('auth')->group(function () {
             Route::post('/caso/{id}/actualizar', [RegistrarCasoController::class, 'update'])->name('caso.update');
             Route::get('/caso/{id}/ver', [RegistrarCasoController::class, 'showDetalle'])->name('caso.detalle');
         });
-
-        // Aquí puedes agregar más grupos protegidos por otros permisos.
-        // Ejemplo: Route::middleware('permission:nombre.del.permiso')->group(...);
     });
     
     //-----------------------------------------------------
-    // RUTAS ESPECÍFICAS PARA EL ROL DE RESPONSABLE
+    // RUTAS ESPECÍFICAS PARA CADA ROL
     //-----------------------------------------------------
     Route::middleware('role:responsable')->prefix('responsable')->name('responsable.')->group(function () {
         Route::get('/dashboard', function () {
             return view('pages.responsable.dashboard');
         })->name('dashboard');
-        // Aquí irían otras rutas para el rol 'responsable'
     });
 
-    //-----------------------------------------------------
-    // RUTAS ESPECÍFICAS PARA EL ROL LEGAL
-    //-----------------------------------------------------
     Route::middleware('role:legal')->prefix('legal')->name('legal.')->group(function () {
         Route::get('/dashboard', function () {
             return view('pages.legal.dashboard');
         })->name('dashboard');
-        // Aquí irían otras rutas para el rol 'legal'
     });
 
-    //-----------------------------------------------------
-    // RUTAS ESPECÍFICAS PARA EL ROL DE ASISTENTE SOCIAL
-    //-----------------------------------------------------
     Route::middleware('role:asistente-social')->prefix('asistente-social')->name('asistente-social.')->group(function () {
         Route::get('/dashboard', function () {
             return view('pages.asistente-social.dashboard');
         })->name('dashboard');
-        // Aquí irían otras rutas para el rol 'asistente-social'
     });
 
 });
