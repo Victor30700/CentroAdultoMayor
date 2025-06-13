@@ -23,7 +23,7 @@ return new class extends Migration
             $table->text('domicilio');
             $table->string('telefono', 20)->nullable();
             $table->string('zona_comunidad', 150)->nullable();
-            $table->enum('area_especialidad', ['Enfermeria', 'Fisioterapia', 'Kinesiologia', 'otro'])->default('Enfermeria');
+            $table->enum('area_especialidad', ['Enfermeria', 'Fisioterapia-Kinesiologia', 'otro'])->default('Enfermeria');
             $table->timestamps();
             
             // Índices para mejorar rendimiento
@@ -38,5 +38,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('persona');
-    }
+    }  
 };

@@ -126,8 +126,7 @@
                                                         <select class="form-select" id="area_especialidad" name="area_especialidad" required>
                                                             <option value="" disabled {{ old('area_especialidad') ? '' : 'selected' }}>Seleccione una especialidad...</option>
                                                             <option value="Enfermeria" {{ old('area_especialidad') == 'Enfermeria' ? 'selected' : '' }}>Enfermería</option>
-                                                            <option value="Fisioterapia" {{ old('area_especialidad') == 'Fisioterapia' ? 'selected' : '' }}>Fisioterapia</option>
-                                                            <option value="Kinesiologia" {{ old('area_especialidad') == 'Kinesiologia' ? 'selected' : '' }}>Kinesiología</option>
+                                                            <option value="Fisioterapia-Kinesiologia" {{ old('area_especialidad') == 'Fisioterapia-Kinesiologia' ? 'selected' : '' }}>Fisioterapia-Kinesiología</option>
                                                         </select>
                                                         <div class="invalid-feedback">Por favor, seleccione un área de especialidad.</div>
                                                     </div>
