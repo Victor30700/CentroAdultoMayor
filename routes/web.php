@@ -135,16 +135,27 @@ Route::middleware('auth')->group(function () {
     //-----------------------------------------------------
     // RUTAS DEL ROL LEGAL
     //-----------------------------------------------------
-    Route::prefix('legal')->name('legal.')->middleware('role:legal')->group(function () {
-        Route::get('/dashboard', fn() => view('pages.legal.dashboard'))->name('dashboard');
-        Route::resource('gestionar-adulto-mayor', LegalAdultoMayorController::class);
-        Route::prefix('proteccion')->name('proteccion.')->group(function () {
-            Route::get('/registrar-caso', [RegistrarCasoController::class, 'create'])->name('registrar-caso');
-            Route::post('/registrar-caso', [RegistrarCasoController::class, 'store']);
-            Route::get('/reportes', [RegistrarCasoController::class, 'reportes'])->name('reportes');
-        });
-    });
+// Rutas para el rol de 'legal'
+Route::middleware(['auth', 'role:legal'])->prefix('legal')->name('legal.')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('pages.legal.dashboard');
+    })->name('dashboard');
 
+    // ------ INICIO DEL BLOQUE CORREGIDO ------
+    // Se ha eliminado el grupo anidado 'proteccion' y se han definido las rutas de forma explícita
+    // para mayor claridad y consistencia con las rutas del rol 'admin'.
+
+    // Módulo Protección
+    Route::get('/proteccion/casos', [RegistrarCasoController::class, 'index'])->name('proteccion.index');
+    Route::get('/proteccion/casos/registrar', [RegistrarCasoController::class, 'create'])->name('proteccion.create');
+    Route::post('/proteccion/casos', [RegistrarCasoController::class, 'store'])->name('proteccion.store');
+    Route::get('/proteccion/casos/{id}', [RegistrarCasoController::class, 'show'])->name('proteccion.show');
+    Route::get('/proteccion/casos/{id}/edit', [RegistrarCasoController::class, 'edit'])->name('proteccion.edit');
+    Route::put('/proteccion/casos/{id}', [RegistrarCasoController::class, 'update'])->name('proteccion.update');
+    Route::delete('/proteccion/casos/{id}', [RegistrarCasoController::class, 'destroy'])->name('proteccion.destroy');
+    // ------ FIN DEL BLOQUE CORREGIDO ------
+
+});
     //-----------------------------------------------------
     // RUTAS DEL ROL ASISTENTE SOCIAL
     //-----------------------------------------------------
