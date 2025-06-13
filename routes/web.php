@@ -93,6 +93,7 @@ Route::middleware('auth')->group(function () {
     //-----------------------------------------------------
     // RUTAS ESPECÍFICAS PARA CADA ROL
     //-----------------------------------------------------
+    /*
     Route::middleware('role:responsable')->prefix('responsable')->name('responsable.')->group(function () {
         Route::get('/dashboard', fn() => view('pages.responsable.dashboard'))->name('dashboard');
     });
@@ -106,4 +107,6 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:asistente-social')->prefix('asistente-social')->name('asistente-social.')->group(function () {
         Route::get('/dashboard', fn() => view('pages.asistente-social.dashboard'))->name('dashboard');
     });
+    */
+    
 });
