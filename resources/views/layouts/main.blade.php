@@ -70,9 +70,9 @@
     <!-- BACK-TO-TOP -->
     <a href="#top" id="back-to-top"><i class="fa fa-angle-up"></i></a>
 
-    {{-- ======================================================= --}}
+    <!-- {{-- ======================================================= --}}
     {{-- BLOQUE ÚNICO DE SCRIPTS (CENTRALIZADO Y ORDENADO) --}}
-    {{-- ======================================================= --}}
+    {{-- ======================================================= --}} -->
     
     <!-- GRUPO 1: LIBRERÍAS FUNDAMENTALES -->
     <script src="{{ asset('assets/js/jquery.min.js') }}"></script>
@@ -115,8 +115,8 @@
     <script src="{{ asset('assets/js/custom.js') }}"></script>
     <script src="{{ asset('assets/switcher/js/switcher.js') }}"></script>
     
-    {{-- Esta directiva inyectará scripts adicionales que cada vista hija defina --}}
-    @yield('scripts')
+    <!-- {{-- Esta directiva inyectará scripts adicionales que cada vista hija defina --}}
+    @yield('scripts') -->
 
 </body>
 </html>

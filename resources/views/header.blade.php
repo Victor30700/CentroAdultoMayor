@@ -88,14 +88,17 @@
                                             <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                                                 <div class="drop-heading">
                                                     <div class="text-center">
-                                                        <h5 class="text-dark mb-0 fs-14 fw-semibold">{{ Auth::user()->name }}</h5>
-                                                        <small class="text-muted">
-                                                            {{-- Código mejorado para mostrar el rol y especialidad --}}
-                                                            {{ ucfirst(str_replace('_', ' ', Auth::user()->rol->nombre_rol ?? 'Usuario')) }}
-                                                            @if(Auth::user()->rol->nombre_rol == 'responsable' && Auth::user()->persona)
-                                                                ({{ Auth::user()->persona->area_especialidad }})
-                                                            @endif
-                                                        </small>
+                                                        @if (Auth::check())
+                                                            <h5 class="text-dark mb-0 fs-14 fw-semibold">{{ Auth::user()->name }}</h5>
+                                                            <small class="text-muted">
+                                                                {{ ucfirst(str_replace('_', ' ', Auth::user()->rol->nombre_rol ?? 'Usuario')) }}
+                                                                @if(Auth::user()->rol->nombre_rol == 'responsable' && Auth::user()->persona)
+                                                                    ({{ Auth::user()->persona->area_especialidad }})
+                                                                @endif
+                                                            </small>
+                                                        @else
+                                                             <h5 class="text-dark mb-0 fs-14 fw-semibold">Invitado</h5>
+                                                        @endif
                                                     </div>
                                                 </div>
                                                 <div class="dropdown-divider m-0"></div>
@@ -134,42 +137,24 @@
                     <div class="main-sidemenu">
                         <div class="slide-left disabled" id="slide-left"><svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"><path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z" /></svg></div>
                         
-                        {{-- ========================================================== --}}
-                        {{-- INICIO DE LA LÓGICA DE MENÚ MEJORADA Y CENTRALIZADA --}}
-                        {{-- ========================================================== --}}
                         @if (Auth::check())
                             @php
-                                // Obtiene el nombre del rol de forma segura, convirtiéndolo a minúsculas
                                 $roleName = strtolower(Auth::user()->rol->nombre_rol ?? 'default');
-                                
-                                // Para el rol 'responsable', necesitamos la especialidad para cargar el menú correcto
-                                if ($roleName == 'responsable') {
-                                    $especialidad = Auth::user()->persona->area_especialidad ?? '';
-                                    // Concatenamos la especialidad al nombre del rol para buscar un menú específico
-                                    // ej. 'responsable_enfermeria'
-                                    if(!empty($especialidad)) {
-                                        $roleName = $roleName . '_' . strtolower(str_replace(' ', '_', $especialidad));
-                                    }
+                                $baseRoleName = $roleName;
+                                if ($roleName == 'responsable' && optional(Auth::user()->persona)->area_especialidad) {
+                                    $especialidad = strtolower(str_replace(' ', '_', Auth::user()->persona->area_especialidad));
+                                    $roleName = $roleName . '_' . $especialidad;
                                 }
                             @endphp
                             
                             <ul class="side-menu">
-                                {{-- 
-                                    Usa @includeFirst para cargar dinámicamente el menú.
-                                    1. Intenta cargar el menú más específico (ej. 'partials.menus.responsable_enfermeria').
-                                    2. Si no existe, intenta cargar el menú del rol base (ej. 'partials.menus.responsable').
-                                    3. Si ninguno existe, carga 'partials.menus.default' para evitar errores.
-                                --}}
                                 @includeFirst([
                                     'partials.menus.' . $roleName, 
-                                    'partials.menus.' . (explode('_', $roleName)[0]), 
+                                    'partials.menus.' . $baseRoleName, 
                                     'partials.menus.default'
                                 ])
                             </ul>
                         @endif
-                        {{-- ========================================================== --}}
-                        {{-- FIN DE LA LÓGICA DE MENÚ MEJORADA --}}
-                        {{-- ========================================================== --}}
 
                         <div class="slide-right" id="slide-right"><svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"><path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z" /></svg></div>
                     </div>
@@ -178,4 +163,3 @@
             <!--/APP-SIDEBAR-->
 
         </div>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
