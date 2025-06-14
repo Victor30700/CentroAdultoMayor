@@ -91,13 +91,13 @@
                                                         @if (Auth::check())
                                                             <h5 class="text-dark mb-0 fs-14 fw-semibold">{{ Auth::user()->name }}</h5>
                                                             <small class="text-muted">
-                                                                {{ ucfirst(str_replace('_', ' ', Auth::user()->rol->nombre_rol ?? 'Usuario')) }}
-                                                                @if(Auth::user()->rol->nombre_rol == 'responsable' && Auth::user()->persona)
-                                                                    ({{ Auth::user()->persona->area_especialidad }})
+                                                                {{ ucfirst(str_replace('_', ' ', optional(Auth::user()->rol)->nombre_rol ?? 'Usuario')) }}
+                                                                @if(optional(Auth::user()->rol)->nombre_rol == 'responsable' && optional(Auth::user())->persona)
+                                                                    ({{ optional(Auth::user()->persona)->area_especialidad }})
                                                                 @endif
                                                             </small>
                                                         @else
-                                                             <h5 class="text-dark mb-0 fs-14 fw-semibold">Invitado</h5>
+                                                            <h5 class="text-dark mb-0 fs-14 fw-semibold">Invitado</h5>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -139,20 +139,112 @@
                         
                         @if (Auth::check())
                             @php
-                                $roleName = strtolower(Auth::user()->rol->nombre_rol ?? 'default');
-                                $baseRoleName = $roleName;
-                                if ($roleName == 'responsable' && optional(Auth::user()->persona)->area_especialidad) {
-                                    $especialidad = strtolower(str_replace(' ', '_', Auth::user()->persona->area_especialidad));
-                                    $roleName = $roleName . '_' . $especialidad;
-                                }
+                                $userRole = optional(Auth::user()->rol)->nombre_rol;
+                                $especialidad = optional(Auth::user()->persona)->area_especialidad;
                             @endphp
                             
                             <ul class="side-menu">
-                                @includeFirst([
-                                    'partials.menus.' . $roleName, 
-                                    'partials.menus.' . $baseRoleName, 
-                                    'partials.menus.default'
-                                ])
+                                {{-- =========== MENÚ GENERAL PARA TODOS =========== --}}
+                                <li class="sub-category">
+                                    <h3>MENÚ PRINCIPAL</h3>
+                                </li>
+                                <li class="slide">
+                                    <a class="side-menu__item" href="{{ route($userRole . '.dashboard') }}">
+                                        <i class="side-menu__icon fe fe-home"></i><span class="side-menu__label">Dashboard</span>
+                                    </a>
+                                </li>
+
+                                {{-- =========== LÓGICA ESPECÍFICA POR ROL =========== --}}
+                                
+                                {{-- ====== ROL: ADMINISTRADOR ====== --}}
+                                @if($userRole == 'admin')
+                                    <li class="slide">
+                                        <a class="side-menu__item" href="{{ route('admin.gestionar-usuarios.index') }}">
+                                            <i class="side-menu__icon fe fe-users"></i><span class="side-menu__label">Gestionar Usuarios</span>
+                                        </a>
+                                    </li>
+                                    <li class="slide">
+                                        <a class="side-menu__item" href="{{ route('admin.gestionar-roles.index') }}">
+                                            <i class="side-menu__icon fe fe-settings"></i><span class="side-menu__label">Gestionar Roles</span>
+                                        </a>
+                                    </li>
+                                    <li class="slide">
+                                        <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0)">
+                                            <i class="side-menu__icon fe fe-user-plus"></i><span class="side-menu__label">Registrar Personal</span><i class="angle fe fe-chevron-right"></i>
+                                        </a>
+                                        <ul class="slide-menu">
+                                            <li><a href="{{ route('admin.registrar-asistente-social') }}" class="slide-item">Asistente Social</a></li>
+                                            <li><a href="{{ route('admin.registrar-usuario-legal') }}" class="slide-item">Área Legal</a></li>
+                                            <li><a href="{{ route('admin.registrar-responsable-salud') }}" class="slide-item">Responsable de Salud</a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="slide">
+                                        <a class="side-menu__item" href="{{ route('admin.gestionar-adultomayor.index') }}">
+                                            <i class="side-menu__icon fe fe-user-check"></i><span class="side-menu__label">Gestionar Adulto Mayor</span>
+                                        </a>
+                                    </li>
+                                @endif
+
+                                {{-- ====== ROL: LEGAL ====== --}}
+                                @if($userRole == 'legal')
+                                    <li class="slide">
+                                        <a class="side-menu__item" href="{{ route('legal.gestionar-adultomayor.index') }}">
+                                            <i class="side-menu__icon fe fe-user-check"></i><span class="side-menu__label">Gestionar Adulto Mayor</span>
+                                        </a>
+                                    </li>
+                                    <li class="slide">
+                                        <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0)">
+                                            <i class="side-menu__icon fe fe-shield"></i><span class="side-menu__label">Módulo Protección</span><i class="angle fe fe-chevron-right"></i>
+                                        </a>
+                                        <ul class="slide-menu">
+                                            <li><a href="{{ route('legal.proteccion.create') }}" class="slide-item">Registrar Caso</a></li>
+                                            <li><a href="{{ route('legal.proteccion.reportes') }}" class="slide-item">Reportes Protección</a></li>
+                                        </ul>
+                                    </li>
+                                @endif
+
+                                {{-- ====== ROL: RESPONSABLE DE SALUD ====== --}}
+                                @if($userRole == 'responsable')
+                                    <li class="slide">
+                                        <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0)">
+                                            <i class="side-menu__icon fe fe-activity"></i><span class="side-menu__label">Módulo Médico</span><i class="angle fe fe-chevron-right"></i>
+                                        </a>
+                                        <ul class="slide-menu">
+                                            @if($especialidad == 'Enfermeria')
+                                                <li><a href="#" class="slide-item">Servicios</a></li>
+                                                <li><a href="#" class="slide-item">Historias Clínicas</a></li>
+                                                <li><a href="#" class="slide-item">Enfermería</a></li>
+                                                <li><a href="#" class="slide-item">Reportes Enfermería</a></li>
+                                            @endif
+                                            @if($especialidad == 'Fisioterapia')
+                                                <li><a href="#" class="slide-item">Fisioterapia</a></li>
+                                                <li><a href="#" class="slide-item">Reportes Fisioterapia</a></li>
+                                            @endif
+                                             @if($especialidad == 'Kinesiologia')
+                                                <li><a href="#" class="slide-item">Kinesiología</a></li>
+                                                <li><a href="#" class="slide-item">Reportes Kinesiología</a></li>
+                                            @endif
+                                        </ul>
+                                    </li>
+                                @endif
+                                
+                                {{-- ====== ROL: ASISTENTE SOCIAL ====== --}}
+                                @if($userRole == 'asistente-social')
+                                    <li class="slide">
+                                        <a class="side-menu__item" href="#"> {{-- AÑADIR RUTA PARA GESTIONAR ADULTO MAYOR --}}
+                                            <i class="side-menu__icon fe fe-user-check"></i><span class="side-menu__label">Gestionar Adulto Mayor</span>
+                                        </a>
+                                    </li>
+                                    <li class="slide">
+                                        <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0)">
+                                            <i class="side-menu__icon fe fe-file-text"></i><span class="side-menu__label">Módulo Orientación</span><i class="angle fe fe-chevron-right"></i>
+                                        </a>
+                                        <ul class="slide-menu">
+                                            <li><a href="{{ route('asistente-social.orientacion.registrar-ficha') }}" class="slide-item">Registrar Ficha</a></li>
+                                            <li><a href="{{ route('asistente-social.orientacion.reportes') }}" class="slide-item">Reportes Orientación</a></li>
+                                        </ul>
+                                    </li>
+                                @endif
                             </ul>
                         @endif
 
@@ -161,5 +253,4 @@
                 </div>
             </div>
             <!--/APP-SIDEBAR-->
-
         </div>
