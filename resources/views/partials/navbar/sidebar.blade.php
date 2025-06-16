@@ -12,7 +12,8 @@
                 <a class="nav-link text-white" href="{{ route('admin.dashboard') }}">Panel Admin</a>
             </li>
             <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{{ route('admin.users') }}">Usuarios</a>
+                {{-- CORRECCIÓN AQUÍ: Se cambió 'admin.users' por 'admin.gestionar-usuarios.index' --}}
+                <a class="nav-link text-white" href="{{ route('admin.gestionar-usuarios.index') }}">Usuarios</a>
             </li>
         @endif
 

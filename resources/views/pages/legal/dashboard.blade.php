@@ -3,31 +3,31 @@
 @section('content')
     <!-- PAGE-HEADER -->
     <div class="page-header">
-        <h1 class="page-title">Panel de Control (Legal)</h1>
+        <h1 class="page-title">Dashboard Legal</h1>
         <div>
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="javascript:void(0)">Inicio</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Dashboard Legal</li>
+                <li class="breadcrumb-item"><a href="javascript:void(0)">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
             </ol>
         </div>
     </div>
     <!-- PAGE-HEADER END -->
 
-    <!-- CONTENIDO DE LA PÁGINA -->
     <div class="row">
-        <div class="col-lg-12">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Bienvenido al Módulo Legal</h3>
-                </div>
+
+        <div class="col-sm-6 col-md-6 col-lg-6 col-xl-3">
+            <div class="card bg-info img-card box-info-shadow">
                 <div class="card-body">
-                    <p>Aquí podrá gestionar los casos de protección, registrar nuevos casos y consultar la información relevante de los adultos mayores.</p>
-                    <p>Utilice el menú de la izquierda para navegar por las diferentes opciones disponibles para su rol.</p>
-                    {{-- CORREGIDO: La ruta ahora es 'legal.proteccion.index' --}}
-                    <a href="{{ route('legal.proteccion.index') }}" class="btn btn-primary">Ver Casos de Protección</a>
+                    <div class="d-flex">
+                        <div class="text-white">
+                            <h2 class="mb-0 number-font">15</h2>
+                            <p class="text-white mb-0">Total Pacientes</p>
+                        </div>
+                        <div class="ms-auto"> <i class="fa fa-user-plus text-white fs-30 me-2 mt-2"></i> </div>
+                    </div>
                 </div>
             </div>
         </div>
+        <!-- COL END -->
     </div>
-    <!-- FIN DEL CONTENIDO DE LA PÁGINA -->
 @endsection

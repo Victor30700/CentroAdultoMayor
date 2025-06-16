@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Route; // <--- LÍNEA AÑADIDA PARA CORREGIR EL ERROR
 
 class LoginController extends Controller
 {
@@ -80,9 +79,6 @@ class LoginController extends Controller
         $user->resetLoginAttempts();
         Auth::login($user);
 
-        // Regenerar la sesión es una buena práctica de seguridad
-        $request->session()->regenerate();
-        
         $roleName = strtolower($user->role_name ?? optional($user->rol)->nombre_rol);
         Log::info("Login exitoso para usuario: {$ci} - Rol: {$roleName}");
 
@@ -98,19 +94,22 @@ class LoginController extends Controller
      */
     protected function redirectBasedOnRole($user)
     {
-        $roleName = strtolower(optional($user->rol)->nombre_rol);
+        $roleName = strtolower($user->role_name ?? optional($user->rol)->nombre_rol);
         
-        // Redirección directa al dashboard específico del rol
-        $route = "{$roleName}.dashboard";
-
-        if (Route::has($route)) {
-            return redirect()->route($route);
+        switch ($roleName) {
+            case 'admin':
+                return redirect()->route('admin.dashboard');
+            case 'responsable':
+                return redirect()->route('responsable.dashboard');
+            case 'legal':
+                return redirect()->route('legal.dashboard');
+            case 'asistente-social':
+                return redirect()->route('asistente-social.dashboard');
+            default:
+                Log::error("Rol no reconocido '{$roleName}' para el usuario CI: {$user->ci}. Cerrando sesión.");
+                Auth::logout();
+                return redirect()->route('login')->withErrors(['ci' => 'Tu rol no es válido. Contacta al administrador.']);
         }
-
-        // Si la ruta del rol no existe, por seguridad se cierra la sesión
-        Log::error("Rol no reconocido o ruta de dashboard no definida para '{$roleName}' del usuario CI: {$user->ci}.");
-        Auth::logout();
-        return redirect()->route('login')->withErrors(['ci' => 'Tu rol no es válido o no tiene una página de inicio. Contacta al administrador.']);
     }
 
     /**
@@ -122,6 +121,7 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         $user = Auth::user();
+        
         if ($user) {
             Log::info("Logout de usuario: {$user->ci}");
         }
