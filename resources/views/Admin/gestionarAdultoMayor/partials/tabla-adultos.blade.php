@@ -30,8 +30,9 @@
                     <td>{{ $adulto->telefono }}</td>
                     <td>{{ $adulto->domicilio }}</td>
                     <td class="text-center">
-                        {{-- Botón para Editar --}}
-                        <a href="{{ route('admin.gestionar-adultomayor.editar', $adulto->ci) }}" class="btn btn-sm btn-primary btn-action" data-bs-toggle="tooltip" title="Editar">
+                        {{-- ===================== CORRECCIÓN ===================== --}}
+                        {{-- Se eliminó el prefijo 'admin.' del nombre de la ruta para que coincida con web.php --}}
+                        <a href="{{ route('gestionar-adultomayor.editar', $adulto->ci) }}" class="btn btn-sm btn-primary btn-action" data-bs-toggle="tooltip" title="Editar">
                             <i class="fe fe-edit"></i>
                         </a>
 

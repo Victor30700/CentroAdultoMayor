@@ -14,30 +14,27 @@ class RoleMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request        $request
+     * @param  \Illuminate\Http\Request  $request
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string                          $role   Ejemplo: "admin", "legal", "responsable" o "asistente-social"
+     * @param  string ...$roles  // MODIFICADO: Acepta múltiples roles como argumentos separados.
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        // 1) Verificar que el usuario esté autenticado
-        if (! Auth::check()) {
+        if (!Auth::check()) {
             return redirect()->route('login');
         }
 
         /** @var User $user */
-        $user = Auth::user(); // Con el doc-block arriba, Intelephense sabe que $user es App\Models\User
+        $user = Auth::user();
 
-        // 2) Verificar que el usuario esté activo
-        if (! $user->active) {
+        if (!$user->active) {
             Auth::logout();
             return redirect()->route('login')->withErrors([
                 'ci' => 'Su cuenta ha sido desactivada. Contacte al administrador.'
             ]);
         }
 
-        // 3) Verificar que el usuario no esté bloqueado temporalmente
         if ($user->isTemporarilyLocked()) {
             Auth::logout();
             return redirect()->route('login')->withErrors([
@@ -45,12 +42,12 @@ class RoleMiddleware
             ]);
         }
 
-        // 4) Verificar el rol del usuario
-        $userRole     = strtolower($user->role_name);
-        $requiredRole = strtolower($role);
+        // MODIFICADO: Verificar si el rol del usuario está en la lista de roles permitidos.
+        $userRole = strtolower($user->role_name ?? optional($user->rol)->nombre_rol);
+        $allowedRoles = array_map('strtolower', $roles);
 
-        if ($userRole !== $requiredRole) {
-            Log::warning("Usuario {$user->ci} intentó acceder a recurso que requiere rol '{$role}' pero tiene rol '{$userRole}'");
+        if (!in_array($userRole, $allowedRoles)) {
+            Log::warning("Usuario {$user->ci} con rol '{$userRole}' intentó acceder a recurso que requiere uno de los siguientes roles: " . implode(', ', $allowedRoles));
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 

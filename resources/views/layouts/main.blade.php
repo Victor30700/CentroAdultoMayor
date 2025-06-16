@@ -37,13 +37,25 @@
     <!-- PAGE -->
     <div class="page">
         <div class="page-main">
+
+            @php
+                $user = Auth::user();
+                $rol = strtolower(optional($user->rol)->nombre_rol ?? 'admin');
+                $especialidad = strtolower(optional($user->responsableDetails)->especialidad ?? '');
+                
+                $dashboardRoute = route('login'); // Fallback
+                if (in_array($rol, ['admin', 'legal', 'asistente-social', 'responsable'])) {
+                    $dashboardRoute = route($rol . '.dashboard');
+                }
+            @endphp
+
             <!-- app-Header -->
             <div class="app-header header sticky">
                 <div class="container-fluid main-container">
                     <div class="d-flex">
                         <a aria-label="Hide Sidebar" class="app-sidebar__toggle" data-bs-toggle="sidebar" href="javascript:void(0)"></a>
                         
-                        <a class="logo-horizontal" href="{{ Auth::check() ? route(optional(Auth::user()->rol)->nombre_rol . '.dashboard') : '#' }}">
+                        <a class="logo-horizontal" href="{{ $dashboardRoute }}">
                             <img src="{{ asset('assets/images/brand/alcaldiaicon.png') }}" class="header-brand-img light-logo" alt="logo">
                             <img src="{{ asset('assets/images/brand/logo-alcaldia.png') }}" class="header-brand-img light-logo1" alt="logo">
                         </a>
@@ -71,11 +83,11 @@
                                                 <div class="drop-heading">
                                                     <div class="text-center">
                                                         @auth
-                                                            <h5 class="text-dark mb-0 fs-14 fw-semibold">{{ Auth::user()->name }}</h5>
+                                                            <h5 class="text-dark mb-0 fs-14 fw-semibold">{{ $user->name }}</h5>
                                                             <small class="text-muted">
-                                                                {{ ucfirst(str_replace('_', ' ', optional(Auth::user()->rol)->nombre_rol ?? 'Usuario')) }}
-                                                                @if(optional(Auth::user()->rol)->nombre_rol == 'responsable' && optional(Auth::user()->responsableDetails)->especialidad)
-                                                                    ({{ optional(Auth::user()->responsableDetails)->especialidad }})
+                                                                {{ ucfirst(str_replace('_', ' ', $rol)) }}
+                                                                @if($rol == 'responsable' && $especialidad)
+                                                                    ({{ ucfirst($especialidad) }})
                                                                 @endif
                                                             </small>
                                                         @endauth
@@ -107,7 +119,7 @@
                 <div class="app-sidebar__overlay" data-bs-toggle="sidebar"></div>
                 <div class="app-sidebar">
                     <div class="side-header">
-                        <a class="header-brand1" href="{{ Auth::check() ? route(optional(Auth::user()->rol)->nombre_rol . '.dashboard') : '#' }}">
+                        <a class="header-brand1" href="{{ $dashboardRoute }}">
                             <img src="{{ asset('assets/images/brand/logo-alcaldia.png') }}" class="header-brand-img desktop-logo" alt="logo">
                             <img src="{{ asset('assets/images/brand/alcaldiaicon.png') }}" class="header-brand-img toggle-logo" alt="logo">
                             <img src="{{ asset('assets/images/brand/alcaldiaicon.png') }}" class="header-brand-img light-logo" alt="logo">
@@ -117,18 +129,15 @@
                     <div class="main-sidemenu">
                         <div class="slide-left disabled" id="slide-left"><svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"><path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z" /></svg></div>
                         @auth
-                            @php
-                                $rol = optional(Auth::user()->rol)->nombre_rol;
-                                $especialidad = optional(Auth::user()->responsableDetails)->especialidad;
-                            @endphp
                             <ul class="side-menu">
                                 <li class="sub-category"><h3>MENÚ PRINCIPAL</h3></li>
                                 <li class="slide">
-                                    <a class="side-menu__item" href="{{ route($rol . '.dashboard') }}">
+                                    <a class="side-menu__item" href="{{ $dashboardRoute }}">
                                         <i class="side-menu__icon fe fe-home"></i><span class="side-menu__label">Inicio</span>
                                     </a>
                                 </li>
                                 
+                                {{-- MENÚS EXCLUSIVOS PARA ADMIN --}}
                                 @if($rol == 'admin')
                                     <li class="sub-category"><h3>Administración</h3></li>
                                     <li class="slide">
@@ -137,7 +146,10 @@
                                             <li><a href="{{ route('admin.registrar-asistente-social') }}" class="slide-item">Asistente Social</a></li>
                                             <li><a href="{{ route('admin.registrar-usuario-legal') }}" class="slide-item">Personal Legal</a></li>
                                             <li><a href="{{ route('admin.registrar-responsable-salud') }}" class="slide-item">Responsable</a></li>
-                                            <li><a href="{{ route('admin.gestionar-adultomayor.create') }}" class="slide-item">Paciente</a></li>
+                                            
+                                            {{-- ===================== CORRECCIÓN CLAVE 1 ===================== --}}
+                                            {{-- Se usa la ruta 'gestionar-adultomayor.create' sin el prefijo 'admin.' --}}
+                                            <li><a href="{{ route('gestionar-adultomayor.create') }}" class="slide-item">Paciente</a></li>
                                         </ul>
                                     </li>
                                     <li class="slide">
@@ -148,22 +160,28 @@
                                     </li>
                                 @endif
 
+                                {{-- MENÚ COMPARTIDO: GESTIÓN ADULTO MAYOR --}}
                                 @if(in_array($rol, ['admin', 'legal', 'asistente-social']))
-                                     <li class="slide">
-                                        <a class="side-menu__item" href="{{ route('admin.gestionar-adultomayor.index') }}"><i class="side-menu__icon fe fe-user-check"></i><span class="side-menu__label">Gestionar Adulto Mayor</span></a>
+                                    <li class="sub-category"><h3>Pacientes</h3></li>
+                                    <li class="slide">
+                                        {{-- ===================== CORRECCIÓN CLAVE 2 ===================== --}}
+                                        {{-- Se usa la ruta 'gestionar-adultomayor.index' sin el prefijo 'admin.' --}}
+                                        <a class="side-menu__item" href="{{ route('gestionar-adultomayor.index') }}"><i class="side-menu__icon fe fe-user-check"></i><span class="side-menu__label">Gestionar Adulto Mayor</span></a>
                                     </li>
                                 @endif
                                 
+                                {{-- MENÚ COMPARTIDO: MÓDULO PROTECCIÓN --}}
                                 @if(in_array($rol, ['admin', 'legal']))
                                     <li class="sub-category"><h3>Módulo Protección</h3></li>
                                     <li class="slide">
                                         <a class="side-menu__item" href="{{ route('legal.proteccion.create') }}"><i class="side-menu__icon fe fe-file-plus"></i><span class="side-menu__label">Registrar Caso</span></a>
                                     </li>
-                                    <li class="slide">
+                                     <li class="slide">
                                         <a class="side-menu__item" href="{{ route('legal.proteccion.reportes') }}"><i class="side-menu__icon fe fe-file-text"></i><span class="side-menu__label">Reportes Protección</span></a>
                                     </li>
                                 @endif
                                 
+                                {{-- MENÚ COMPARTIDO: MÓDULO ORIENTACIÓN --}}
                                 @if(in_array($rol, ['admin', 'asistente-social']))
                                     <li class="sub-category"><h3>Módulo Orientación</h3></li>
                                      <li class="slide">
@@ -174,35 +192,36 @@
                                     </li>
                                 @endif
 
+                                {{-- MENÚS PARA RESPONSABLE DE SALUD (Y ADMIN) --}}
                                 @if(in_array($rol, ['admin', 'responsable']))
                                     <li class="sub-category"><h3>Módulo Médico</h3></li>
                                     
-                                    @if($rol == 'admin' || $especialidad == 'Enfermeria')
+                                    @if($rol == 'admin' || $especialidad == 'enfermeria')
                                     <li class="slide">
                                         <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);"><i class="side-menu__icon fe fe-heart"></i><span class="side-menu__label">Enfermería</span><i class="angle fe fe-chevron-right"></i></a>
                                         <ul class="slide-menu">
-                                             <li><a href="{{ route('responsable.enfermeria.servicios') }}" class="slide-item">Servicios</a></li>
-                                             <li><a href="{{ route('responsable.enfermeria.historias') }}" class="slide-item">Historias Clínicas</a></li>
-                                             <li><a href="{{ route('responsable.enfermeria.reportes') }}" class="slide-item">Reportes Enfermería</a></li>
+                                            <li><a href="{{ route('responsable.enfermeria.servicios') }}" class="slide-item">Servicios</a></li>
+                                            <li><a href="{{ route('responsable.enfermeria.historias') }}" class="slide-item">Historias Clínicas</a></li>
+                                            <li><a href="{{ route('responsable.enfermeria.reportes') }}" class="slide-item">Reportes Enfermería</a></li>
                                         </ul>
                                     </li>
                                     @endif
 
-                                    @if($rol == 'admin' || $especialidad == 'Fisioterapia')
+                                    @if($rol == 'admin' || $especialidad == 'fisioterapia')
                                     <li class="slide">
                                         <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);"><i class="side-menu__icon fe fe-activity"></i><span class="side-menu__label">Fisioterapia</span><i class="angle fe fe-chevron-right"></i></a>
                                         <ul class="slide-menu">
-                                            <li><a href="{{ route('responsable.fisioterapia.atencion') }}" class="slide-item">Fisioterapia</a></li>
+                                            <li><a href="{{ route('responsable.fisioterapia.atencion') }}" class="slide-item">Atención</a></li>
                                             <li><a href="{{ route('responsable.fisioterapia.reportes') }}" class="slide-item">Reportes Fisioterapia</a></li>
                                         </ul>
                                     </li>
                                     @endif
 
-                                    @if($rol == 'admin' || $especialidad == 'Kinesiologia')
+                                    @if($rol == 'admin' || $especialidad == 'kinesiologia')
                                     <li class="slide">
                                         <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);"><i class="side-menu__icon fe fe-wind"></i><span class="side-menu__label">Kinesiología</span><i class="angle fe fe-chevron-right"></i></a>
                                         <ul class="slide-menu">
-                                            <li><a href="{{ route('responsable.kinesiologia.atencion') }}" class="slide-item">Kinesiología</a></li>
+                                            <li><a href="{{ route('responsable.kinesiologia.atencion') }}" class="slide-item">Atención</a></li>
                                             <li><a href="{{ route('responsable.kinesiologia.reportes') }}" class="slide-item">Reportes Kinesiología</a></li>
                                         </ul>
                                     </li>
@@ -246,21 +265,14 @@
     <script src="{{ asset('assets/js/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/bootstrap/js/popper.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/bootstrap/js/bootstrap.min.js') }}"></script>
-
-    <!-- ========= ORDEN DE SCRIPTS CORREGIDO ========= -->
-    <!-- 1. LIBRERÍAS (Dependencias) -->
     <script src="{{ asset('assets/plugins/p-scroll/perfect-scrollbar.js') }}"></script>
     <script src="{{ asset('assets/plugins/select2/select2.full.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/datatable/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/datatable/js/dataTables.bootstrap5.js') }}"></script>
-    
-    <!-- 2. SCRIPTS DE LA PLANTILLA QUE DEPENDEN DE LIBRERÍAS -->
     <script src="{{ asset('assets/plugins/sidemenu/sidemenu.js') }}"></script>
     <script src="{{ asset('assets/plugins/p-scroll/pscroll.js') }}"></script>
     <script src="{{ asset('assets/plugins/sidebar/sidebar.js') }}"></script>
     <script src="{{ asset('assets/js/sticky.js') }}"></script>
-
-    <!-- 3. EXTENSIONES DE DATATABLES Y SUS SCRIPTS DE INICIALIZACIÓN -->
     <script src="{{ asset('assets/plugins/datatable/js/dataTables.buttons.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/datatable/js/buttons.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/datatable/js/jszip.min.js') }}"></script>
@@ -271,17 +283,12 @@
     <script src="{{ asset('assets/plugins/datatable/js/buttons.colVis.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/datatable/responsive.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('assets/js/table-data.js') }}"></script>
-    
-    <!-- 4. OTROS SCRIPTS -->
     <script src="{{ asset('assets/plugins/sweet-alert/sweetalert.min.js') }}"></script>
     <script src="{{ asset('assets/js/sweet-alert.js') }}"></script>
     <script src="{{ asset('assets/js/themeColors.js') }}"></script>
     <script src="{{ asset('assets/switcher/js/switcher.js') }}"></script>
-
-    <!-- 5. SCRIPT CUSTOM FINAL (debe ser el último de la plantilla) -->
     <script src="{{ asset('assets/js/custom.js') }}"></script>
     
-    <!-- Scripts específicos de cada página (se inyectan aquí) -->
     @stack('scripts')
 </body>
 </html>
