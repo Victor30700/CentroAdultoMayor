@@ -53,12 +53,17 @@
 
             @php
                 $user = Auth::user();
-                $rol = strtolower(optional($user->rol)->nombre_rol ?? 'admin');
-                $especialidad = strtolower(optional($user->responsableDetails)->especialidad ?? '');
+                // Usamos el accessor 'role_name' que ya tienes en tu modelo User.php
+                $rol = $user->role_name; 
+                $especialidad = strtolower(optional($user->persona)->area_especialidad ?? '');
                 
                 $dashboardRoute = route('login'); // Fallback
                 if (in_array($rol, ['admin', 'legal', 'asistente-social', 'responsable'])) {
-                    $dashboardRoute = route($rol . '.dashboard');
+                    // La ruta del dashboard se construye con el nombre del rol directamente
+                    $dashboardRouteName = $rol . '.dashboard';
+                    if (Route::has($dashboardRouteName)) {
+                        $dashboardRoute = route($dashboardRouteName);
+                    }
                 }
             @endphp
 
@@ -98,9 +103,10 @@
                                             <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                                                 <div class="drop-heading">
                                                     <div class="text-center">
-                                                        <h5 class="text-dark mb-0 fs-14 fw-semibold">{{ $user->name }}</h5>
+                                                        {{-- Usamos el accessor 'full_name' que ya tienes en el modelo User.php --}}
+                                                        <h5 class="text-dark mb-0 fs-14 fw-semibold">{{ $user->full_name }}</h5>
                                                         <small class="text-muted">
-                                                            {{ ucfirst(str_replace('_', ' ', $rol)) }}
+                                                            {{ ucfirst(str_replace('-', ' ', $rol)) }}
                                                             @if($rol == 'responsable' && $especialidad)
                                                                 ({{ ucfirst($especialidad) }})
                                                             @endif
@@ -151,18 +157,19 @@
                                 </a>
                             </li>
                             
-                            {{-- MENÚS EXCLUSIVOS PARA ADMIN --}}
+                            {{-- ===================== INICIO DE MENÚS POR ROL ===================== --}}
+
+                            {{-- MENÚ EXCLUSIVO PARA ADMIN --}}
                             @if($rol == 'admin')
-                                <li class="sub-category"><h3>Administración</h3></li>
+                                <li class="sub-category"><h3>Administración del Sistema</h3></li>
                                 <li class="slide">
-                                    <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);"><i class="side-menu__icon fe fe-user-plus"></i><span class="side-menu__label">Registrar Usuarios</span><i class="angle fe fe-chevron-right"></i></a>
+                                    <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);">
+                                        <i class="side-menu__icon fe fe-user-plus"></i><span class="side-menu__label">Registrar Personal</span><i class="angle fe fe-chevron-right"></i>
+                                    </a>
                                     <ul class="slide-menu">
                                         <li><a href="{{ route('admin.registrar-asistente-social') }}" class="slide-item">Asistente Social</a></li>
                                         <li><a href="{{ route('admin.registrar-usuario-legal') }}" class="slide-item">Personal Legal</a></li>
-                                        <li><a href="{{ route('admin.registrar-responsable-salud') }}" class="slide-item">Responsable</a></li>
-                                        {{-- ===================== CORRECCIÓN 1 ===================== --}}
-                                        {{-- La ruta para crear paciente ahora no tiene el prefijo 'admin.' --}}
-                                        <li><a href="{{ route('gestionar-adultomayor.create') }}" class="slide-item">Paciente</a></li>
+                                        <li><a href="{{ route('admin.registrar-responsable-salud') }}" class="slide-item">Responsable de Salud</a></li>
                                     </ul>
                                 </li>
                                 <li class="slide">
@@ -173,17 +180,21 @@
                                 </li>
                             @endif
 
-                            {{-- MENÚ COMPARTIDO: GESTIÓN ADULTO MAYOR --}}
+                            {{-- MENÚ GESTIÓN DE PACIENTES (admin, legal, asistente-social) --}}
                             @if(in_array($rol, ['admin', 'legal', 'asistente-social']))
-                                <li class="sub-category"><h3>Pacientes</h3></li>
+                                <li class="sub-category"><h3>Gestión de Pacientes</h3></li>
                                 <li class="slide">
-                                    {{-- ===================== CORRECCIÓN 2 ===================== --}}
-                                    {{-- La ruta para ver pacientes ahora no tiene el prefijo 'admin.' --}}
-                                    <a class="side-menu__item" href="{{ route('gestionar-adultomayor.index') }}"><i class="side-menu__icon fe fe-user-check"></i><span class="side-menu__label">Gestionar Adulto Mayor</span></a>
+                                    <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);">
+                                        <i class="side-menu__icon fe fe-user-check"></i><span class="side-menu__label">Adulto Mayor</span><i class="angle fe fe-chevron-right"></i>
+                                    </a>
+                                    <ul class="slide-menu">
+                                        <li><a href="{{ route('gestionar-adultomayor.index') }}" class="slide-item">Gestionar Pacientes</a></li>
+                                        <li><a href="{{ route('gestionar-adultomayor.create') }}" class="slide-item">Registrar Paciente</a></li>
+                                    </ul>
                                 </li>
                             @endif
                             
-                            {{-- MENÚ COMPARTIDO: MÓDULO PROTECCIÓN --}}
+                            {{-- MENÚ MÓDULO PROTECCIÓN (admin, legal) --}}
                             @if(in_array($rol, ['admin', 'legal']))
                                 <li class="sub-category"><h3>Módulo Protección</h3></li>
                                 <li class="slide">
@@ -194,7 +205,7 @@
                                 </li>
                             @endif
                             
-                            {{-- MENÚ COMPARTIDO: MÓDULO ORIENTACIÓN --}}
+                            {{-- MENÚ MÓDULO ORIENTACIÓN (admin, asistente-social) --}}
                             @if(in_array($rol, ['admin', 'asistente-social']))
                                 <li class="sub-category"><h3>Módulo Orientación</h3></li>
                                 <li class="slide">
