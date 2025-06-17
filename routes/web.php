@@ -43,7 +43,6 @@ Route::middleware('auth')->group(function () {
     // =========================================================================================
 
     // --- GRUPO DE RUTAS DE GESTIÓN DE ADULTOS MAYORES (Accesible por admin, legal y asistente-social) ---
-    // NOTA: Se ha movido fuera del prefijo 'admin' para que otros roles puedan acceder.
     Route::prefix('gestionar-adultos-mayores')->name('gestionar-adultomayor.')->middleware('role:admin,legal,asistente-social')->group(function () {
         Route::get('/', [AdminController::class, 'gestionarAdultoMayorIndex'])->name('index');
         Route::get('/crear', [AdminController::class, 'showRegisterAdultoMayor'])->name('create');

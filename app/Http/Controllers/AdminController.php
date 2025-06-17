@@ -458,8 +458,8 @@ public function storeAdultoMayor(Request $request)
 
             Log::info('Transacción completada exitosamente');
 
-            return redirect()->route('admin.gestionar-adultomayor.index') // Asumiendo que esta es tu ruta de listado
-                                ->with('success', 'Adulto Mayor registrado exitosamente.');
+            return redirect()->route('gestionar-adultomayor.index') // <--- ESTA ES LA LÍNEA CORRECTA
+                 ->with('success', 'Adulto Mayor registrado exitosamente.');
 
         } catch (\Exception $e) {
             DB::rollBack();
