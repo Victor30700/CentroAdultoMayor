@@ -189,7 +189,14 @@
                                     </a>
                                     <ul class="slide-menu">
                                         <li><a href="{{ route('gestionar-adultomayor.index') }}" class="slide-item">Gestionar Pacientes</a></li>
-                                        <li><a href="{{ route('gestionar-adultomayor.create') }}" class="slide-item">Registrar Paciente</a></li>
+                                        
+                                        {{-- ===================== INICIO DE LA MEJORA ===================== --}}
+                                        {{-- El siguiente enlace solo será visible para los roles 'admin' y 'legal' --}}
+                                        @if(in_array($rol, ['admin', 'legal']))
+                                            <li><a href="{{ route('gestionar-adultomayor.create') }}" class="slide-item">Registrar Paciente</a></li>
+                                        @endif
+                                        {{-- ====================== FIN DE LA MEJORA ====================== --}}
+                                        
                                     </ul>
                                 </li>
                             @endif
@@ -208,7 +215,7 @@
                             {{-- MENÚ MÓDULO ORIENTACIÓN (admin, asistente-social) --}}
                             @if(in_array($rol, ['admin', 'asistente-social']))
                                 <li class="sub-category"><h3>Módulo Orientación</h3></li>
-                                <li class="slide">
+                                 <li class="slide">
                                     <a class="side-menu__item" href="{{ route('asistente-social.orientacion.registrar-ficha') }}"><i class="side-menu__icon fe fe-edit-2"></i><span class="side-menu__label">Registrar Ficha</span></a>
                                 </li>
                                 <li class="slide">
@@ -221,14 +228,14 @@
                                 <li class="sub-category"><h3>Módulo Médico</h3></li>
                                 
                                 @if($rol == 'admin' || $especialidad == 'enfermeria')
-                                    <li class="slide">
-                                        <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);"><i class="side-menu__icon fe fe-heart"></i><span class="side-menu__label">Enfermería</span><i class="angle fe fe-chevron-right"></i></a>
-                                        <ul class="slide-menu">
-                                            <li><a href="{{ route('responsable.enfermeria.servicios') }}" class="slide-item">Servicios</a></li>
-                                            <li><a href="{{ route('responsable.enfermeria.historias') }}" class="slide-item">Historias Clínicas</a></li>
-                                            <li><a href="{{ route('responsable.enfermeria.reportes') }}" class="slide-item">Reportes Enfermería</a></li>
-                                        </ul>
-                                    </li>
+                                <li class="slide">
+                                    <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);"><i class="side-menu__icon fe fe-heart"></i><span class="side-menu__label">Enfermería</span><i class="angle fe fe-chevron-right"></i></a>
+                                    <ul class="slide-menu">
+                                        <li><a href="{{ route('responsable.enfermeria.servicios') }}" class="slide-item">Servicios</a></li>
+                                        <li><a href="{{ route('responsable.enfermeria.historias') }}" class="slide-item">Historias Clínicas</a></li>
+                                        <li><a href="{{ route('responsable.enfermeria.reportes') }}" class="slide-item">Reportes Enfermería</a></li>
+                                    </ul>
+                                </li>
                                 @endif
 
                                 @if($rol == 'admin' || $especialidad == 'fisioterapia')

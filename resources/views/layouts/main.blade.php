@@ -146,9 +146,6 @@
                                             <li><a href="{{ route('admin.registrar-asistente-social') }}" class="slide-item">Asistente Social</a></li>
                                             <li><a href="{{ route('admin.registrar-usuario-legal') }}" class="slide-item">Personal Legal</a></li>
                                             <li><a href="{{ route('admin.registrar-responsable-salud') }}" class="slide-item">Responsable</a></li>
-                                            
-                                            {{-- ===================== CORRECCIÓN CLAVE 1 ===================== --}}
-                                            {{-- Se usa la ruta 'gestionar-adultomayor.create' sin el prefijo 'admin.' --}}
                                             <li><a href="{{ route('gestionar-adultomayor.create') }}" class="slide-item">Paciente</a></li>
                                         </ul>
                                     </li>
@@ -160,15 +157,27 @@
                                     </li>
                                 @endif
 
-                                {{-- MENÚ COMPARTIDO: GESTIÓN ADULTO MAYOR --}}
+                                {{-- ===================== INICIO DE LA MEJORA ===================== --}}
+                                {{-- MENÚ COMPARTIDO: GESTIÓN ADULTO MAYOR (LÓGICA CORREGIDA) --}}
                                 @if(in_array($rol, ['admin', 'legal', 'asistente-social']))
                                     <li class="sub-category"><h3>Pacientes</h3></li>
                                     <li class="slide">
-                                        {{-- ===================== CORRECCIÓN CLAVE 2 ===================== --}}
-                                        {{-- Se usa la ruta 'gestionar-adultomayor.index' sin el prefijo 'admin.' --}}
-                                        <a class="side-menu__item" href="{{ route('gestionar-adultomayor.index') }}"><i class="side-menu__icon fe fe-user-check"></i><span class="side-menu__label">Gestionar Adulto Mayor</span></a>
+                                        {{-- Para roles con permisos de registro, se convierte en un menú desplegable --}}
+                                        @if(in_array($rol, ['admin', 'legal']))
+                                            <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);">
+                                                <i class="side-menu__icon fe fe-user-check"></i><span class="side-menu__label">Gestionar Adulto Mayor</span><i class="angle fe fe-chevron-right"></i>
+                                            </a>
+                                            <ul class="slide-menu">
+                                                <li><a href="{{ route('gestionar-adultomayor.index') }}" class="slide-item">Ver Pacientes</a></li>
+                                                <li><a href="{{ route('gestionar-adultomayor.create') }}" class="slide-item">Registrar Paciente</a></li>
+                                            </ul>
+                                        @else
+                                            {{-- Para otros roles (como asistente-social), es un enlace directo --}}
+                                            <a class="side-menu__item" href="{{ route('gestionar-adultomayor.index') }}"><i class="side-menu__icon fe fe-user-check"></i><span class="side-menu__label">Gestionar Adulto Mayor</span></a>
+                                        @endif
                                     </li>
                                 @endif
+                                {{-- ====================== FIN DE LA MEJORA ====================== --}}
                                 
                                 {{-- MENÚ COMPARTIDO: MÓDULO PROTECCIÓN --}}
                                 @if(in_array($rol, ['admin', 'legal']))

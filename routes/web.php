@@ -44,10 +44,13 @@ Route::middleware('auth')->group(function () {
 
     // --- GRUPO DE RUTAS DE GESTIÓN DE ADULTOS MAYORES (Accesible por admin, legal y asistente-social) ---
     Route::prefix('gestionar-adultos-mayores')->name('gestionar-adultomayor.')->middleware('role:admin,legal,asistente-social')->group(function () {
+        // --- Rutas estáticas ---
         Route::get('/', [AdminController::class, 'gestionarAdultoMayorIndex'])->name('index');
         Route::get('/crear', [AdminController::class, 'showRegisterAdultoMayor'])->name('create');
-        Route::post('/', [AdminController::class, 'storeAdultoMayor'])->name('store');
         Route::get('/buscar', [AdminController::class, 'buscarAdultoMayor'])->name('buscar');
+        Route::post('/', [AdminController::class, 'storeAdultoMayor'])->name('store');
+        
+        // --- Rutas dinámicas (con parámetros) ---
         Route::get('/{ci}/editar', [AdminController::class, 'editarAdultoMayor'])->name('editar');
         Route::put('/{ci}', [AdminController::class, 'actualizarAdultoMayor'])->name('actualizar');
         Route::delete('/{ci}', [AdminController::class, 'eliminarAdultoMayor'])->name('eliminar');

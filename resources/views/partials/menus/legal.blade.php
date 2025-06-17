@@ -1,9 +1,11 @@
-{{--
+<!-- {{--
 Ruta: resources/views/partials/menus/legal.blade.php
-Menú específico para usuarios con rol 'legal'
-Acceso a: Gestionar Adulto Mayor, Módulo Protección (Registrar Caso, Reportes Protección)
---}}
+Menú específico para usuarios con rol 'legal'.
+Este menú debe ser incluido en el layout principal (ej. sidebar.blade.php)
+cuando el rol del usuario autenticado sea 'legal'.
+--}} -->
 
+{{-- Dashboard --}}
 <li class="slide">
     <a class="side-menu__item" href="{{ route('legal.dashboard') }}">
         <i class="side-menu__icon fe fe-home"></i>
@@ -11,34 +13,41 @@ Acceso a: Gestionar Adulto Mayor, Módulo Protección (Registrar Caso, Reportes 
     </a>
 </li>
 
-{{-- Gestionar Adulto Mayor --}}
+{{-- Título de la Categoría: Gestión --}}
 <li class="sub-category">
     <h3>Gestión de Adultos Mayores</h3>
 </li>
 
-<li class="slide has-sub">
-    <a href="javascript:void(0);" class="side-menu__item">
+{{-- Menú Desplegable: Gestionar Adulto Mayor --}}
+<li class="slide">
+    <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0)">
         <i class="side-menu__icon fe fe-users"></i>
         <span class="side-menu__label">Gestionar Adulto Mayor</span>
-        <i class="angle fe fe-chevron-down"></i>
+        <i class="angle fe fe-chevron-right"></i>
     </a>
     <ul class="slide-menu">
         <li class="side-menu-label1"><a href="javascript:void(0)">Adultos Mayores</a></li>
-        <li><a href="{{ route('legal.gestionar-adultomayor.index') }}" class="slide-item">Ver Adultos Mayores</a></li>
-        <li><a href="{{ route('legal.registrar-adulto-mayor') }}" class="slide-item">Registrar Adulto Mayor</a></li>
+        <li>
+            <a href="{{ route('gestionar-adultomayor.index') }}" class="slide-item">Ver Adultos Mayores</a>
+        </li>
+        {{-- ENLACE CORREGIDO Y AÑADIDO --}}
+        <li>
+            <a href="{{ route('gestionar-adultomayor.create') }}" class="slide-item">Registrar Paciente</a>
+        </li>
     </ul>
 </li>
 
-{{-- Módulo Protección --}}
+{{-- Título de la Categoría: Módulo Protección --}}
 <li class="sub-category">
     <h3>Módulo Protección</h3>
 </li>
 
-<li class="slide has-sub">
-    <a href="javascript:void(0);" class="side-menu__item">
+{{-- Menú Desplegable: Protección --}}
+<li class="slide">
+    <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0)">
         <i class="side-menu__icon fe fe-shield"></i>
         <span class="side-menu__label">Protección</span>
-        <i class="angle fe fe-chevron-down"></i>
+        <i class="angle fe fe-chevron-right"></i>
     </a>
     <ul class="slide-menu">
         <li class="side-menu-label1"><a href="javascript:void(0)">Casos de Protección</a></li>
