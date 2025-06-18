@@ -1,6 +1,7 @@
 {{-- views/Admin/gestionarRoles/editar/edit.blade.php --}}
-@include('header')
+@extends('layouts.main')
 
+@section('content')
 {{-- Incluir el archivo CSS --}}
 <link rel="stylesheet" href="{{ asset('css/gestionarRolescss/editRoles.css') }}">
 
@@ -147,5 +148,4 @@
         </form>
     </div>
 </div>
-
-@include('footer')
+@endsection

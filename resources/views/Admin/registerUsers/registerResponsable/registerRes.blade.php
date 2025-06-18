@@ -1,6 +1,7 @@
 {{-- registerRes.blade.php --}}
-@include('header')
+@extends('layouts.main')
 
+@section('content')
 <div class="page">
     <div class="page-main">
         <div class="main-content app-content mt-0">
@@ -209,7 +210,7 @@
         </div>
      </div>
 </div>
-
+@endsection
 <style>
     /* Estilos generales para asegurar visibilidad de validación */
     .form-control.is-invalid, .form-select.is-invalid, .form-check-input.is-invalid {
@@ -255,6 +256,7 @@
     }
 </style>
 
+@push('scripts')
 <!-- 1) Bootstrap JS (necesario para que bootstrap.Tab exista) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <!-- 2) SweetAlert2 -->
@@ -528,4 +530,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-@include('footer')
+@endpush

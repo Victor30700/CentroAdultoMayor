@@ -1,6 +1,7 @@
 {{-- resources/views/Admin/gestionarUsers/editar/edit.blade.php --}}
-@include('header')
+@extends('layouts.main')
 
+@section('content')
 <head>
     <link rel="stylesheet" href="{{ asset('css/editarUsuario.css') }}">
     {{-- IMPORTANTE: Asegúrate de que una librería de iconos esté cargada --}}
@@ -210,7 +211,7 @@
     </div>
 </div>
 
-@include('footer')
+@endsection
 
 @push('scripts')
 <script>

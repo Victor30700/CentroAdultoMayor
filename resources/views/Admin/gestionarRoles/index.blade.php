@@ -1,6 +1,7 @@
 {{-- resources/views/Admin/gestionarRoles/index.blade.php --}}
-@include('header')
+@extends('layouts.main')
 
+@section('content')
 <head>
     <link rel="stylesheet" href="{{ asset('css/gestionarRoles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
@@ -176,7 +177,7 @@
     </div>
 </div>
 
-@include('footer')
+@endsection
 
 @push('scripts')
 <script src="https://cdn.datatables.net/v/dt/dt-1.11.5/datatables.min.js"></script>

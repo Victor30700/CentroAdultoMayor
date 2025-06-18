@@ -23,7 +23,11 @@ return new class extends Migration
             $table->text('domicilio');
             $table->string('telefono', 20)->nullable();
             $table->string('zona_comunidad', 150)->nullable();
+
+            // campo disponible area de especialidad para el usuaio con el rol de Responsable
             $table->enum('area_especialidad', ['Enfermeria', 'Fisioterapia-Kinesiologia', 'otro'])->default('Enfermeria');
+            // nuevo campo de especialidad disponible solo para el registro del usuario con rol legal
+            $table->enum('area_especialidad_legal', ['Asistente Social', 'Psicologia', 'Derecho'])->default('Asistente Social');
             $table->timestamps();
             
             // Índices para mejorar rendimiento

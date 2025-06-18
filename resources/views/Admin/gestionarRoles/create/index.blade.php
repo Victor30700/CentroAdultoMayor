@@ -1,6 +1,7 @@
 {{-- views/Admin/gestionarRoles/create/index.blade.php --}}
-@include('header')
+@extends('layouts.main')
 
+@section('content')
 {{-- Enlace al CSS personalizado para gestión de roles --}}
 <link href="{{ asset('css/gestionarRolescss/createRoles.css') }}" rel="stylesheet">
 
@@ -126,4 +127,4 @@
     </div>
 </div>
 
-@include('footer')
+@endsection
