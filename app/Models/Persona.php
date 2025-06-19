@@ -31,6 +31,7 @@ class Persona extends Model
         'telefono',
         'zona_comunidad',
         'area_especialidad',
+        'area_especialidad_legal',
     ];
 
     protected $casts = [

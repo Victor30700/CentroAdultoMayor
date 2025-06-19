@@ -101,8 +101,7 @@
                                                         <label for="estado_civil" class="form-label">Estado Civil <span class="text-danger">*</span></label>
                                                         <select class="form-select" id="estado_civil" name="estado_civil" required>
                                                             <option value="" disabled {{ old('estado_civil') ? '' : 'selected' }}>Seleccione...</option>
-                                                            <option value="casado" {{ old('estado_civil') == 'casado' ? 'selected' : '' }}>Casado(a)</option>  
-                                                            <option value="divorciado" {{ old('estado_civil') == 'divorciado' ? 'selected' : '' }}>Divorciado(a)</option>
+                                                            <option value="casado" {{ old('estado_civil') == 'casado' ? 'selected' : '' }}>Casado(a)</option>                                  <option value="divorciado" {{ old('estado_civil') == 'divorciado' ? 'selected' : '' }}>Divorciado(a)</option>
                                                             <option value="soltero" {{ old('estado_civil') == 'soltero' ? 'selected' : '' }}>Soltero(a)</option>
                                                             <option value="otro" {{ old('estado_civil') == 'otro' ? 'selected' : '' }}>Otro</option>
                                                         </select>
@@ -124,6 +123,16 @@
                                                     <div class="col-md-4 mb-3">
                                                         <label for="zona_comunidad" class="form-label">Zona/Comunidad</label>
                                                         <input type="text" class="form-control" id="zona_comunidad" name="zona_comunidad" value="{{ old('zona_comunidad') }}">
+                                                    </div>
+                                                    <div class="col-md-4 mb-3">
+                                                        <label for="area_especialidad_legal" class="form-label">Área de Especialidad <span class="text-danger">*</span></label>
+                                                        <select class="form-select" id="area_especialidad_legal" name="area_especialidad_legal" required>
+                                                            <option value="" disabled {{ old('area_especialidad_legal') ? '' : 'selected' }}>Seleccione...</option>
+                                                            <option value="Asistente Social" {{ old('area_especialidad_legal') == 'Asistente Social' ? 'selected' : '' }}>Asistente Social</option>
+                                                            <option value="Psicologia" {{ old('area_especialidad_legal') == 'Psicologia' ? 'selected' : '' }}>Psicología</option>
+                                                            <option value="Derecho" {{ old('area_especialidad_legal') == 'Derecho' ? 'selected' : '' }}>Derecho</option>
+                                                        </select>
+                                                        <div class="invalid-feedback">Por favor, seleccione el área de especialidad.</div>
                                                     </div>
                                                 </div>
 
@@ -257,9 +266,7 @@
 </style>
 
 @push('scripts')
-<!-- 1) Bootstrap JS (necesario para que bootstrap.Tab exista) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- 2) SweetAlert2 (para alertas) -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>

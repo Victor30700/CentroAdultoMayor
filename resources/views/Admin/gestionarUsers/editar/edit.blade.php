@@ -4,7 +4,8 @@
 @section('content')
 <head>
     <link rel="stylesheet" href="{{ asset('css/editarUsuario.css') }}">
-    {{-- IMPORTANTE: Asegúrate de que una librería de iconos esté cargada --}}
+    {{-- Feather Icons para los íconos de los botones --}}
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 </head>
 
 <div class="page">
@@ -88,7 +89,7 @@
                                 <div>
                                     <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento:</label>
                                     <input type="date" name="fecha_nacimiento" id="fecha_nacimiento"
-                                           value="{{ old('fecha_nacimiento', $user->persona ? (\Carbon\Carbon::parse($user->persona->fecha_nac)->format('Y-m-d')) : '') }}"
+                                           value="{{ old('fecha_nacimiento', $user->persona ? (\Carbon\Carbon::parse($user->persona->fecha_nacimiento)->format('Y-m-d')) : '') }}"
                                            class="form-input @error('fecha_nacimiento') is-invalid @enderror" required>
                                     @error('fecha_nacimiento') <p class="error-message">{{ $message }}</p> @enderror
                                 </div>
@@ -134,22 +135,30 @@
                                            class="form-input @error('zona_comunidad') is-invalid @enderror">
                                     @error('zona_comunidad') <p class="error-message">{{ $message }}</p> @enderror
                                 </div>
+                                
+                                {{-- Campo de especialidad para rol Responsable (ID 2) --}}
+                                <div id="campo_area_especialidad" style="display: none;">
+                                    <label for="area_especialidad" class="form-label">Área de Especialidad (Salud):</label>
+                                    <select name="area_especialidad" id="area_especialidad" class="form-select @error('area_especialidad') is-invalid @enderror">
+                                        <option value="" disabled>Seleccione una especialidad...</option>
+                                        <option value="Enfermeria" {{ old('area_especialidad', $user->persona->area_especialidad ?? '') == 'Enfermeria' ? 'selected' : '' }}>Enfermería</option>
+                                        <option value="Fisioterapia-Kinesiologia" {{ old('area_especialidad', $user->persona->area_especialidad ?? '') == 'Fisioterapia-Kinesiologia' ? 'selected' : '' }}>Fisioterapia-Kinesiología</option>
+                                        <option value="otro" {{ old('area_especialidad', $user->persona->area_especialidad ?? '') == 'otro' ? 'selected' : '' }}>Otro</option>
+                                    </select>
+                                    @error('area_especialidad') <p class="error-message">{{ $message }}</p> @enderror
+                                </div>
 
-                                {{-- ================== NUEVO: Mostrar 'Área de Especialidad' sólo si es Responsable ================== --}}
-                                @if ($user->id_rol == 2) {{-- 2 = Responsable de Salud --}}
-                                    <div>
-                                        <label for="area_especialidad" class="form-label">Área de Especialidad:</label>
-                                        <select name="area_especialidad" id="area_especialidad"
-                                                class="form-select @error('area_especialidad') is-invalid @enderror" required>
-                                            <option value="" disabled {{ old('area_especialidad', $user->persona->area_especialidad ?? '') ? '' : 'selected' }}>Seleccione una especialidad...</option>
-                                            <option value="Enfermeria" {{ old('area_especialidad', $user->persona->area_especialidad ?? '') == 'Enfermeria' ? 'selected' : '' }}>Enfermería</option>
-                                            <option value="Fisioterapia" {{ old('area_especialidad', $user->persona->area_especialidad ?? '') == 'Fisioterapia' ? 'selected' : '' }}>Fisioterapia</option>
-                                            <option value="Kinesiologia" {{ old('area_especialidad', $user->persona->area_especialidad ?? '') == 'Kinesiologia' ? 'selected' : '' }}>Kinesiología</option>
-                                        </select>
-                                        @error('area_especialidad') <p class="error-message">{{ $message }}</p> @enderror
-                                    </div>
-                                @endif
-                                {{-- ============================================================================================ --}}
+                                {{-- Campo de especialidad para rol Legal (ID 3) --}}
+                                <div id="campo_area_especialidad_legal" style="display: none;">
+                                    <label for="area_especialidad_legal" class="form-label">Área de Especialidad (Legal):</label>
+                                    <select name="area_especialidad_legal" id="area_especialidad_legal" class="form-select @error('area_especialidad_legal') is-invalid @enderror">
+                                        <option value="" disabled>Seleccione una especialidad...</option>
+                                        <option value="Asistente Social" {{ old('area_especialidad_legal', $user->persona->area_especialidad_legal ?? '') == 'Asistente Social' ? 'selected' : '' }}>Asistente Social</option>
+                                        <option value="Psicologia" {{ old('area_especialidad_legal', $user->persona->area_especialidad_legal ?? '') == 'Psicologia' ? 'selected' : '' }}>Psicología</option>
+                                        <option value="Derecho" {{ old('area_especialidad_legal', $user->persona->area_especialidad_legal ?? '') == 'Derecho' ? 'selected' : '' }}>Derecho</option>
+                                    </select>
+                                    @error('area_especialidad_legal') <p class="error-message">{{ $message }}</p> @enderror
+                                </div>
                             </div>
 
                             <hr class="divider">
@@ -216,11 +225,55 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Inicializar Feather Icons si corresponda
+    // Inicializar Feather Icons
     if (typeof feather !== 'undefined') {
         feather.replace();
     }
 
+    // --- LÓGICA PARA CAMPOS DE ESPECIALIDAD DINÁMICOS ---
+    const rolSelect = document.getElementById('id_rol');
+    const especialidadSaludContainer = document.getElementById('campo_area_especialidad');
+    const especialidadLegalContainer = document.getElementById('campo_area_especialidad_legal');
+    const especialidadSaludSelect = document.getElementById('area_especialidad');
+    const especialidadLegalSelect = document.getElementById('area_especialidad_legal');
+
+    function toggleEspecialidadFields() {
+        const selectedRol = rolSelect.value;
+
+        // Lógica para 'Responsable' (ID 2) - Campo de especialidad de salud
+        if (selectedRol == '2') {
+            especialidadSaludContainer.style.display = 'block';
+            especialidadSaludSelect.disabled = false;
+            especialidadSaludSelect.required = true;
+        } else {
+            especialidadSaludContainer.style.display = 'none';
+            especialidadSaludSelect.disabled = true;
+            especialidadSaludSelect.required = false;
+            especialidadSaludSelect.value = ''; // Limpiar valor cuando se oculta
+        }
+
+        // Lógica para 'Legal' (ID 3) - Campo de especialidad legal
+        if (selectedRol == '3') {
+            especialidadLegalContainer.style.display = 'block';
+            especialidadLegalSelect.disabled = false;
+            especialidadLegalSelect.required = true;
+        } else {
+            especialidadLegalContainer.style.display = 'none';
+            especialidadLegalSelect.disabled = true;
+            especialidadLegalSelect.required = false;
+            especialidadLegalSelect.value = ''; // Limpiar valor cuando se oculta
+        }
+    }
+
+    if (rolSelect) {
+        rolSelect.addEventListener('change', toggleEspecialidadFields);
+        // Ejecutar al cargar para establecer el estado inicial
+        toggleEspecialidadFields();
+    }
+    // --- FIN DE LÓGICA DE ESPECIALIDAD ---
+
+
+    // --- LÓGICA DE VALIDACIÓN DEL FORMULARIO EXISTENTE ---
     const editUserForm = document.getElementById('editUserForm');
     const jsValidationAlert = document.getElementById('js-validation-alert');
     const jsValidationMessage = document.getElementById('js-validation-message');
@@ -232,29 +285,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function hideJsValidationAlert() {
-        jsValidationAlert.classList.add('hidden');
-        jsValidationMessage.textContent = '';
+        if (jsValidationAlert) {
+            jsValidationAlert.classList.add('hidden');
+            jsValidationMessage.textContent = '';
+        }
     }
 
     hideJsValidationAlert();
 
-    // Quitar clases de error al escribir
     const formInputs = document.querySelectorAll('.form-input, .form-select');
     formInputs.forEach(input => {
         input.addEventListener('input', function() {
             this.classList.remove('is-invalid');
-            const allRequiredValid = Array.from(editUserForm.querySelectorAll('[required]')).every(field => {
-                return field.type === 'password' || field.disabled || field.value.trim() !== '';
-            });
-            if (allRequiredValid) {
-                hideJsValidationAlert();
-            }
         });
     });
 
-    // Validación de contraseñas coincidentes
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('password_confirmation');
+
     function validatePasswordMatch() {
         if (passwordInput.value !== confirmPasswordInput.value) {
             confirmPasswordInput.classList.add('is-invalid');
@@ -262,53 +310,57 @@ document.addEventListener('DOMContentLoaded', function () {
             confirmPasswordInput.classList.remove('is-invalid');
         }
     }
+    
     if (passwordInput && confirmPasswordInput) {
         passwordInput.addEventListener('input', validatePasswordMatch);
         confirmPasswordInput.addEventListener('input', validatePasswordMatch);
     }
 
-    // Validación al enviar el formulario
-    editUserForm.addEventListener('submit', function (event) {
-        let isValid = true;
-        let firstInvalidField = null;
-        let errorMessage = 'Por favor, complete todos los campos obligatorios.';
-        Array.from(editUserForm.querySelectorAll('.form-input, .form-select')).forEach(field => {
-            field.classList.remove('is-invalid');
-        });
+    if (editUserForm) {
+        editUserForm.addEventListener('submit', function (event) {
+            let isValid = true;
+            let firstInvalidField = null;
+            let errorMessage = 'Por favor, complete todos los campos obligatorios.';
+            
+            editUserForm.querySelectorAll('.form-input, .form-select').forEach(field => {
+                field.classList.remove('is-invalid');
+            });
 
-        const requiredFields = editUserForm.querySelectorAll('[required]');
-        requiredFields.forEach(field => {
-            if (field.type !== 'password' && !field.disabled && field.offsetParent !== null && field.value.trim() === '') {
-                isValid = false;
-                field.classList.add('is-invalid');
-                if (!firstInvalidField) {
-                    firstInvalidField = field;
+            const requiredFields = editUserForm.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                // Solo validar si el campo es visible y no está deshabilitado
+                if (!field.disabled && field.offsetParent !== null && field.value.trim() === '') {
+                    isValid = false;
+                    field.classList.add('is-invalid');
+                    if (!firstInvalidField) {
+                        firstInvalidField = field;
+                    }
+                }
+            });
+
+            if (passwordInput.value || confirmPasswordInput.value) {
+                if (passwordInput.value !== confirmPasswordInput.value) {
+                    isValid = false;
+                    confirmPasswordInput.classList.add('is-invalid');
+                    errorMessage = 'Las contraseñas no coinciden.';
+                    if (!firstInvalidField) {
+                        firstInvalidField = confirmPasswordInput;
+                    }
                 }
             }
-        });
 
-        if (passwordInput.value || confirmPasswordInput.value) {
-            validatePasswordMatch();
-            if (confirmPasswordInput.classList.contains('is-invalid')) {
-                isValid = false;
-                if (!firstInvalidField) {
-                    firstInvalidField = confirmPasswordInput;
+            if (!isValid) {
+                event.preventDefault();
+                showJsValidationAlert(errorMessage);
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-                errorMessage = 'Las contraseñas no coinciden.';
+            } else {
+                hideJsValidationAlert();
             }
-        }
-
-        if (!isValid) {
-            event.preventDefault();
-            showJsValidationAlert(errorMessage);
-            if (firstInvalidField) {
-                firstInvalidField.focus();
-                firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        } else {
-            hideJsValidationAlert();
-        }
-    });
+        });
+    }
 });
 </script>
 @endpush
