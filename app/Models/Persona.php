@@ -1,7 +1,6 @@
 <?php
 // app/Models/Persona.php
-// Si no tienes este modelo, créalo con: php artisan make:model Persona
-// Este modelo es referenciado en tu migración de usuario y adulto_mayor.
+// Este modelo ya está correcto. Se incluye para tu referencia y para confirmar que no necesita cambios.
 
 namespace App\Models;
 
@@ -18,6 +17,11 @@ class Persona extends Model
     public $incrementing = false; // La clave primaria 'ci' no es auto-incremental
     protected $keyType = 'string'; // El tipo de la clave primaria es string
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'ci',
         'primer_apellido',
@@ -34,6 +38,11 @@ class Persona extends Model
         'area_especialidad_legal',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'fecha_nacimiento' => 'date',
         'edad' => 'integer',
@@ -59,7 +68,6 @@ class Persona extends Model
 
     /**
      * El usuario asociado a esta persona (si existe).
-     * Una persona puede ser un usuario.
      */
     public function usuario()
     {
@@ -68,11 +76,9 @@ class Persona extends Model
 
     /**
      * El adulto mayor asociado a esta persona (si existe).
-     * Una persona puede ser un adulto mayor.
      */
     public function adultoMayor()
     {
         return $this->hasOne(AdultoMayor::class, 'ci', 'ci');
     }
 }
-?>

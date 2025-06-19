@@ -1,4 +1,4 @@
-{{-- resources/views/admin/registerLegal.blade.php --}}
+{{-- resources/views/Admin/registerUsers/registerLegal/registerLeg.blade.php --}}
 @extends('layouts.main')
 
 @section('content')
@@ -25,7 +25,8 @@
                                 <div class="card-body">
                                     {{-- Manejo de errores de validación del servidor --}}
                                     @if ($errors->any())
-                                        <div class="alert alert-danger">
+                                        <div class="alert alert-danger" id="server-validation-alert">
+                                            <p><strong>Por favor, corrija los siguientes errores:</strong></p>
                                             <ul>
                                                 @foreach ($errors->all() as $error)
                                                     <li>{{ $error }}</li>
@@ -101,7 +102,8 @@
                                                         <label for="estado_civil" class="form-label">Estado Civil <span class="text-danger">*</span></label>
                                                         <select class="form-select" id="estado_civil" name="estado_civil" required>
                                                             <option value="" disabled {{ old('estado_civil') ? '' : 'selected' }}>Seleccione...</option>
-                                                            <option value="casado" {{ old('estado_civil') == 'casado' ? 'selected' : '' }}>Casado(a)</option>                                  <option value="divorciado" {{ old('estado_civil') == 'divorciado' ? 'selected' : '' }}>Divorciado(a)</option>
+                                                            <option value="casado" {{ old('estado_civil') == 'casado' ? 'selected' : '' }}>Casado(a)</option>
+                                                            <option value="divorciado" {{ old('estado_civil') == 'divorciado' ? 'selected' : '' }}>Divorciado(a)</option>
                                                             <option value="soltero" {{ old('estado_civil') == 'soltero' ? 'selected' : '' }}>Soltero(a)</option>
                                                             <option value="otro" {{ old('estado_civil') == 'otro' ? 'selected' : '' }}>Otro</option>
                                                         </select>
@@ -155,7 +157,7 @@
                                                     <div class="col-md-6 mb-3">
                                                         <label for="id_rol" class="form-label">Rol <span class="text-danger">*</span></label>
                                                         <input type="text" class="form-control" value="Usuario Legal" readonly>
-                                                        <input type="hidden" name="id_rol" value="3"> {{-- Asumiendo que 3 es el ID para Legal --}}
+                                                        <input type="hidden" name="id_rol" value="3">
                                                     </div>
                                                 </div>
 
@@ -209,25 +211,28 @@
         </div>
      </div>
 </div>
-
 @endsection
-{{-- Estilos generales para validación y pestañas --}}
+
+@push('styles')
 <style>
     .form-control.is-invalid,
     .form-select.is-invalid,
     .form-check-input.is-invalid {
-        border-color: #dc3545 !important; /* Rojo para inválido */
+        border-color: #dc3545 !important;
     }
     .form-control.is-valid,
     .form-select.is-valid {
-        border-color: #198754 !important; /* Verde para válido */
+        border-color: #198754 !important;
     }
     .invalid-feedback {
-        display: block !important; /* Asegurar que el mensaje de feedback se muestre */
+        display: none;
         width: 100%;
         margin-top: .25rem;
         font-size: .875em;
         color: #dc3545;
+    }
+    .is-invalid ~ .invalid-feedback {
+        display: block;
     }
     .form-check-input.is-invalid ~ .form-check-label {
         color: #dc3545 !important;
@@ -250,28 +255,18 @@
         padding: 15px;
         border-radius: 0 0 .25rem .25rem;
     }
-    /* Alerta de validación en Pestaña 1 (opcional si se desea resaltar) */
-    .validation-alert {
-        border-color: #ffc107;
-        background-color: #fff3cd;
-        color: #856404;
-    }
-    /* Estilo para el campo de CI en la pestaña 2 */
     #ci_usuario[readonly] {
-        background-color: #f8f9fa;
-        color: #212529;
+        background-color: #e9ecef;
         font-weight: bold;
-        font-size: 1.1rem;
     }
 </style>
+@endpush
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Selección de Elementos DOM ---
     const form = document.getElementById('registerLegalForm');
     const nextButton = document.getElementById('nextButton');
     const prevButton = document.getElementById('prevButton');
@@ -280,19 +275,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const ciInput = document.getElementById('ci');
     const ciUsuarioInput = document.getElementById('ci_usuario');
     const passwordInput = document.getElementById('password');
-    const confirmPasswordInput = document.getElementById('password_confirmation');
 
-    // Instanciación de pestañas (Bootstrap.Tab)
-    let bsTabDatosPersonales = null;
-    let bsTabDatosUsuario = null;
-    if (datosPersonalesTabEl && typeof bootstrap !== 'undefined' && bootstrap.Tab) {
-        bsTabDatosPersonales = new bootstrap.Tab(datosPersonalesTabEl);
-    }
-    if (datosUsuarioTabEl && typeof bootstrap !== 'undefined' && bootstrap.Tab) {
-        bsTabDatosUsuario = new bootstrap.Tab(datosUsuarioTabEl);
-    }
+    let bsTabDatosPersonales = new bootstrap.Tab(datosPersonalesTabEl);
+    let bsTabDatosUsuario = new bootstrap.Tab(datosUsuarioTabEl);
 
-    // --- Copiar CI al campo Usuario (CI) ---
     function updateCiUsuario() {
         if (ciInput && ciUsuarioInput) {
             ciUsuarioInput.value = ciInput.value;
@@ -300,246 +286,118 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (ciInput) {
         ciInput.addEventListener('input', updateCiUsuario);
-        updateCiUsuario(); // Copiar al cargar si old('ci') existe
+        updateCiUsuario();
     }
 
-    // --- Función de validación individual ---
     function validateField(input) {
-        input.classList.remove('is-invalid', 'is-valid');
-        const feedback = input.parentElement.querySelector('.invalid-feedback');
         let isValid = true;
-        let message = '';
+        input.classList.remove('is-invalid', 'is-valid');
 
         if (input.required) {
             if (input.type === 'checkbox') {
-                if (!input.checked) {
-                    isValid = false;
-                    message = feedback ? feedback.textContent : 'Este campo es obligatorio.';
-                }
+                if (!input.checked) isValid = false;
             } else if (!input.value.trim()) {
                 isValid = false;
-                message = feedback ? feedback.textContent : 'Este campo es obligatorio.';
             }
         }
-        if (isValid && input.pattern) {
-            const regex = new RegExp(input.pattern);
-            if (!regex.test(input.value)) {
-                isValid = false;
-                message = input.id === 'ci'
-                    ? 'El CI debe contener solo números.'
-                    : (input.id === 'telefono'
-                        ? 'El teléfono debe contener solo números.'
-                        : 'Formato incorrecto.');
-                if (feedback) feedback.textContent = message;
-            } else {
-                if (feedback && input.id === 'ci') feedback.textContent = 'Por favor, ingrese el CI (solo números).';
-                if (feedback && input.id === 'telefono') feedback.textContent = 'Por favor, ingrese el teléfono (solo números).';
-            }
+        if (isValid && input.pattern && input.value.length > 0) {
+            if (!new RegExp(input.pattern).test(input.value)) isValid = false;
         }
-        if (isValid && input.id === 'password' && input.value.length > 0 && input.value.length < input.minLength) {
+        if (isValid && input.minLength > 0 && input.value.length > 0 && input.value.length < input.minLength) {
             isValid = false;
-            message = `Debe tener al menos ${input.minLength} caracteres.`;
-            if (feedback) feedback.textContent = message;
         }
-        if (isValid && input.id === 'password_confirmation' && passwordInput && passwordInput.value !== input.value) {
+        if (isValid && input.id === 'password_confirmation' && passwordInput.value !== input.value) {
             isValid = false;
-            message = 'Las contraseñas no coinciden.';
-            if (feedback) feedback.textContent = message;
         }
 
-        if (isValid) {
-            input.classList.add('is-valid');
-        } else {
-            input.classList.add('is-invalid');
-        }
+        input.classList.toggle('is-valid', isValid);
+        input.classList.toggle('is-invalid', !isValid);
         return isValid;
     }
 
-    // Añadir listeners de validación en tiempo real
-    form.querySelectorAll('input[required], select[required]').forEach(input => {
-        input.addEventListener('input', () => validateField(input));
-        input.addEventListener('change', () => validateField(input));
+    function validateTab(tabPaneId) {
+        const tabPane = document.getElementById(tabPaneId);
+        let isTabValid = true;
+        let firstInvalidElement = null;
+        
+        tabPane.querySelectorAll('[required]').forEach(field => {
+            if (!validateField(field)) {
+                isTabValid = false;
+                if (!firstInvalidElement) {
+                    firstInvalidElement = field;
+                }
+            }
+        });
+        return { isValid: isTabValid, firstInvalidElement: firstInvalidElement };
+    }
+
+    form.querySelectorAll('[required]').forEach(input => {
+        const eventType = (input.tagName === 'SELECT' || input.type === 'checkbox') ? 'change' : 'input';
+        input.addEventListener(eventType, () => validateField(input));
     });
+
     if (passwordInput) {
         passwordInput.addEventListener('input', () => {
             validateField(passwordInput);
-            if (confirmPasswordInput && confirmPasswordInput.value) validateField(confirmPasswordInput);
+            const confirm = document.getElementById('password_confirmation');
+            if (confirm.value) validateField(confirm);
         });
     }
-    if (confirmPasswordInput) {
-        confirmPasswordInput.addEventListener('input', () => validateField(confirmPasswordInput));
-    }
+    document.getElementById('password_confirmation')?.addEventListener('input', (e) => validateField(e.target));
+    
+    nextButton?.addEventListener('click', function() {
+        const validationResult = validateTab('datosPersonales');
+        if (validationResult.isValid) {
+            bsTabDatosUsuario.show();
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campos Incompletos',
+                text: 'Por favor, complete todos los campos obligatorios en esta pestaña.',
+                confirmButtonText: 'Entendido'
+            }).then(() => {
+                validationResult.firstInvalidElement?.focus();
+            });
+        }
+    });
 
-    // Validar todos los campos en una pestaña
-    function validateTab(tabPaneId) {
-        const tabPane = document.getElementById(tabPaneId);
-        if (!tabPane) return { isValid: true, firstInvalidElement: null };
-        let allFieldsValid = true;
-        let firstInvalid = null;
-        const fields = tabPane.querySelectorAll('input[required], select[required]');
-        fields.forEach(field => {
-            if (!validateField(field)) {
-                allFieldsValid = false;
-                if (!firstInvalid) {
-                    firstInvalid = field;
-                }
-            }
-        });
-        return { isValid: allFieldsValid, firstInvalidElement: firstInvalid };
-    }
+    prevButton?.addEventListener('click', () => bsTabDatosPersonales.show());
+    
+    datosUsuarioTabEl.addEventListener('shown.bs.tab', updateCiUsuario);
 
-    // --- Botón “Siguiente” ---
-    if (nextButton) {
-        nextButton.addEventListener('click', function() {
-            const validationResult = validateTab('datosPersonales');
-            if (validationResult.isValid) {
-                if (bsTabDatosUsuario) {
-                    bsTabDatosUsuario.show();
-                } else {
-                    document.getElementById('datosPersonales').classList.remove('show', 'active');
-                    document.getElementById('datosUsuario').classList.add('show', 'active');
-                    datosPersonalesTabEl.classList.remove('active');
-                    datosUsuarioTabEl.classList.add('active');
-                    updateCiUsuario();
-                }
-            } else {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Campos Incompletos o Inválidos',
-                        html: 'Por favor, revise los campos marcados en la pestaña "Datos Personales".',
-                        confirmButtonText: 'Entendido'
-                    }).then(() => {
-                        if (validationResult.firstInvalidElement) {
-                            validationResult.firstInvalidElement.focus();
-                            validationResult.firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    });
-                }
-            }
-        });
-    }
-
-    // --- Botón “Anterior” ---
-    if (prevButton) {
-        prevButton.addEventListener('click', function() {
-            if (bsTabDatosPersonales) {
-                bsTabDatosPersonales.show();
-            } else {
-                document.getElementById('datosUsuario').classList.remove('show', 'active');
-                document.getElementById('datosPersonales').classList.add('show', 'active');
-                datosUsuarioTabEl.classList.remove('active');
-                datosPersonalesTabEl.classList.add('active');
-            }
-        });
-    }
-
-    // Al mostrarse la pestaña “Datos de Usuario”, actualizar CI
-    if (datosUsuarioTabEl) {
-        datosUsuarioTabEl.addEventListener('shown.bs.tab', function() {
-            updateCiUsuario();
-        });
-    }
-
-    // --- Envío del Formulario ---
     form.addEventListener('submit', function(event) {
         event.preventDefault();
 
-        let allValid = true;
-        let firstInvalidElementOverall = null;
-        let tabIdOfFirstError = null;
-        let errorMessages = [];
-
-        // Validar Pestaña 1
         const personalValidation = validateTab('datosPersonales');
-        if (!personalValidation.isValid) {
-            allValid = false;
-            if (!firstInvalidElementOverall) {
-                firstInvalidElementOverall = personalValidation.firstInvalidElement;
-                tabIdOfFirstError = 'datos-personales-tab';
-            }
-            document.getElementById('datosPersonales').querySelectorAll('.is-invalid').forEach(el => {
-                const labelEl = form.querySelector(`label[for="${el.id}"]`);
-                const label = labelEl ? labelEl.textContent.replace('*','').trim() : (el.name || el.id);
-                const feedbackMsg = el.parentElement.querySelector('.invalid-feedback')?.textContent || 'Error desconocido.';
-                errorMessages.push(`<b>${label}:</b> ${feedbackMsg}`);
-            });
-        }
-
-        // Validar Pestaña 2
         const userValidation = validateTab('datosUsuario');
-        if (!userValidation.isValid) {
-            allValid = false;
-            if (!firstInvalidElementOverall) {
-                firstInvalidElementOverall = userValidation.firstInvalidElement;
-                tabIdOfFirstError = 'datos-usuario-tab';
-            }
-            document.getElementById('datosUsuario').querySelectorAll('.is-invalid').forEach(el => {
-                const labelEl = form.querySelector(`label[for="${el.id}"]`);
-                const label = labelEl ? labelEl.textContent.replace('*','').trim() : (el.name || el.id);
-                const feedbackMsg = el.parentElement.querySelector('.invalid-feedback')?.textContent || 'Error desconocido.';
-                if (!errorMessages.some(msg => msg.startsWith(`<b>${label}:`))) {
-                    errorMessages.push(`<b>${label}:</b> ${feedbackMsg}`);
+
+        if (personalValidation.isValid && userValidation.isValid) {
+            Swal.fire({
+                title: 'Procesando...',
+                text: 'Enviando su registro. Por favor espere.',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+            form.submit();
+        } else {
+            let firstInvalidOverall = personalValidation.firstInvalidElement || userValidation.firstInvalidElement;
+            let tabIdOfFirstError = personalValidation.isValid ? 'datos-usuario-tab' : 'datos-personales-tab';
+            
+            Swal.fire({
+                icon: 'error',
+                title: 'Formulario Incompleto o Inválido',
+                html: 'Por favor, corrija los errores marcados en rojo antes de continuar.',
+                confirmButtonText: 'Entendido'
+            }).then(() => {
+                const tabButton = document.getElementById(tabIdOfFirstError);
+                if (tabButton) {
+                    (bootstrap.Tab.getInstance(tabButton) || new bootstrap.Tab(tabButton)).show();
+                    setTimeout(() => {
+                        firstInvalidOverall?.focus();
+                        firstInvalidOverall?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 250);
                 }
             });
-        }
-
-        // Eliminar mensajes duplicados
-        errorMessages = [...new Set(errorMessages)];
-
-        if (!allValid) {
-            if (typeof Swal !== 'undefined') {
-                let htmlErrorMessages = 'Por favor, corrija los siguientes errores:<br><ul style="text-align: left; margin-left: 20px; padding-left:20px; list-style-type: disc;">';
-                errorMessages.forEach(msg => {
-                    htmlErrorMessages += `<li>${msg}</li>`;
-                });
-                htmlErrorMessages += '</ul>';
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Formulario Incompleto o Inválido',
-                    html: htmlErrorMessages,
-                    confirmButtonText: 'Entendido',
-                    customClass: {
-                        htmlContainer: 'text-start'
-                    }
-                }).then(() => {
-                    if (tabIdOfFirstError && firstInvalidElementOverall) {
-                        const tabButton = document.getElementById(tabIdOfFirstError);
-                        if (tabButton && typeof bootstrap !== 'undefined' && bootstrap.Tab) {
-                            const bsTabInstance = bootstrap.Tab.getInstance(tabButton) || new bootstrap.Tab(tabButton);
-                            bsTabInstance.show();
-                            setTimeout(() => {
-                                firstInvalidElementOverall.focus();
-                                firstInvalidElementOverall.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }, 250);
-                        } else {
-                            firstInvalidElementOverall.focus();
-                            firstInvalidElementOverall.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }
-                    }
-                });
-            }
-        } else {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Procesando...',
-                    text: 'Enviando su registro.',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
-                });
-                // Simulación de envío
-                setTimeout(() => {
-                    Swal.fire('¡Registrado!', 'Su información ha sido registrada con éxito.', 'success')
-                        .then(() => {
-                            form.submit();
-                        });
-                }, 1500);
-            } else {
-                form.submit();
-            }
         }
     });
 });

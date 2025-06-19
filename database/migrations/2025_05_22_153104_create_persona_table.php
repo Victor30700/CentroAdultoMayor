@@ -24,10 +24,12 @@ return new class extends Migration
             $table->string('telefono', 20)->nullable();
             $table->string('zona_comunidad', 150)->nullable();
 
-            // campo disponible area de especialidad para el usuaio con el rol de Responsable
-            $table->enum('area_especialidad', ['Enfermeria', 'Fisioterapia-Kinesiologia', 'otro'])->default('Enfermeria');
-            // nuevo campo de especialidad disponible solo para el registro del usuario con rol legal
-            $table->enum('area_especialidad_legal', ['Asistente Social', 'Psicologia', 'Derecho'])->default('Asistente Social');
+            // CORRECCIÓN: Se añade ->nullable() para permitir que uno de los dos campos esté vacío.
+            $table->enum('area_especialidad', ['Enfermeria', 'Fisioterapia-Kinesiologia', 'otro'])->nullable();
+            
+            // CORRECCIÓN: Se añade ->nullable() para permitir que uno de los dos campos esté vacío.
+            $table->enum('area_especialidad_legal', ['Asistente Social', 'Psicologia', 'Derecho'])->nullable();
+            
             $table->timestamps();
             
             // Índices para mejorar rendimiento
@@ -42,5 +44,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('persona');
-    }  
+    }
 };
