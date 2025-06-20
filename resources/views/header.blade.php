@@ -58,7 +58,8 @@
                 $especialidad = strtolower(optional($user->persona)->area_especialidad ?? '');
                 
                 $dashboardRoute = route('login'); // Fallback
-                if (in_array($rol, ['admin', 'legal', 'asistente-social', 'responsable'])) {
+                // CORRECCIÓN: Se elimina 'asistente-social' del array de roles válidos.
+                if (in_array($rol, ['admin', 'legal', 'responsable'])) {
                     // La ruta del dashboard se construye con el nombre del rol directamente
                     $dashboardRouteName = $rol . '.dashboard';
                     if (Route::has($dashboardRouteName)) {
@@ -108,7 +109,8 @@
                                                         <small class="text-muted">
                                                             {{ ucfirst(str_replace('-', ' ', $rol)) }}
                                                             @if($rol == 'responsable' && $especialidad)
-                                                                ({{ ucfirst($especialidad) }})
+                                                                {{-- MEJORA: Se corrige el nombre de la especialidad para que coincida --}}
+                                                                ({{ ucfirst(str_replace('-', ' ', $especialidad)) }})
                                                             @endif
                                                         </small>
                                                     </div>
@@ -167,7 +169,7 @@
                                         <i class="side-menu__icon fe fe-user-plus"></i><span class="side-menu__label">Registrar Personal</span><i class="angle fe fe-chevron-right"></i>
                                     </a>
                                     <ul class="slide-menu">
-                                        <li><a href="{{ route('admin.registrar-asistente-social') }}" class="slide-item">Asistente Social</a></li>
+                                        {{-- CORRECCIÓN: Se elimina el enlace a registrar asistente social --}}
                                         <li><a href="{{ route('admin.registrar-usuario-legal') }}" class="slide-item">Personal Legal</a></li>
                                         <li><a href="{{ route('admin.registrar-responsable-salud') }}" class="slide-item">Responsable de Salud</a></li>
                                     </ul>
@@ -180,8 +182,9 @@
                                 </li>
                             @endif
 
-                            {{-- MENÚ GESTIÓN DE PACIENTES (admin, legal, asistente-social) --}}
-                            @if(in_array($rol, ['admin', 'legal', 'asistente-social']))
+                            {{-- MENÚ GESTIÓN DE PACIENTES (admin, legal) --}}
+                            {{-- CORRECCIÓN: Se elimina 'asistente-social' de la condición --}}
+                            @if(in_array($rol, ['admin', 'legal']))
                                 <li class="sub-category"><h3>Gestión de Pacientes</h3></li>
                                 <li class="slide">
                                     <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);">
@@ -190,12 +193,10 @@
                                     <ul class="slide-menu">
                                         <li><a href="{{ route('gestionar-adultomayor.index') }}" class="slide-item">Gestionar Pacientes</a></li>
                                         
-                                        {{-- ===================== INICIO DE LA MEJORA ===================== --}}
                                         {{-- El siguiente enlace solo será visible para los roles 'admin' y 'legal' --}}
                                         @if(in_array($rol, ['admin', 'legal']))
                                             <li><a href="{{ route('gestionar-adultomayor.create') }}" class="slide-item">Registrar Paciente</a></li>
                                         @endif
-                                        {{-- ====================== FIN DE LA MEJORA ====================== --}}
                                         
                                     </ul>
                                 </li>
@@ -212,16 +213,7 @@
                                 </li>
                             @endif
                             
-                            {{-- MENÚ MÓDULO ORIENTACIÓN (admin, asistente-social) --}}
-                            @if(in_array($rol, ['admin', 'asistente-social']))
-                                <li class="sub-category"><h3>Módulo Orientación</h3></li>
-                                 <li class="slide">
-                                    <a class="side-menu__item" href="{{ route('asistente-social.orientacion.registrar-ficha') }}"><i class="side-menu__icon fe fe-edit-2"></i><span class="side-menu__label">Registrar Ficha</span></a>
-                                </li>
-                                <li class="slide">
-                                    <a class="side-menu__item" href="{{ route('asistente-social.orientacion.reportes') }}"><i class="side-menu__icon fe fe-bar-chart-2"></i><span class="side-menu__label">Reportes Orientación</span></a>
-                                </li>
-                            @endif
+                            {{-- CORRECCIÓN: Se elimina por completo el menú para 'asistente-social' --}}
 
                             {{-- MENÚS PARA RESPONSABLE DE SALUD (Y ADMIN) --}}
                             @if(in_array($rol, ['admin', 'responsable']))
@@ -238,25 +230,18 @@
                                 </li>
                                 @endif
 
-                                @if($rol == 'admin' || $especialidad == 'fisioterapia')
+                                {{-- MEJORA: Se unifica la lógica para Fisioterapia-Kinesiología --}}
+                                @if($rol == 'admin' || $especialidad == 'fisioterapia-kinesiologia')
                                 <li class="slide">
-                                    <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);"><i class="side-menu__icon fe fe-activity"></i><span class="side-menu__label">Fisioterapia</span><i class="angle fe fe-chevron-right"></i></a>
+                                    <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);"><i class="side-menu__icon fe fe-activity"></i><span class="side-menu__label">Fisio-Kinesiología</span><i class="angle fe fe-chevron-right"></i></a>
                                     <ul class="slide-menu">
                                         <li><a href="{{ route('responsable.fisioterapia.atencion') }}" class="slide-item">Atención</a></li>
-                                        <li><a href="{{ route('responsable.fisioterapia.reportes') }}" class="slide-item">Reportes Fisioterapia</a></li>
+                                        <li><a href="{{ route('responsable.fisioterapia.reportes') }}" class="slide-item">Reportes Fisio</a></li>
                                     </ul>
                                 </li>
                                 @endif
 
-                                @if($rol == 'admin' || $especialidad == 'kinesiologia')
-                                <li class="slide">
-                                    <a class="side-menu__item" data-bs-toggle="slide" href="javascript:void(0);"><i class="side-menu__icon fe fe-wind"></i><span class="side-menu__label">Kinesiología</span><i class="angle fe fe-chevron-right"></i></a>
-                                    <ul class="slide-menu">
-                                        <li><a href="{{ route('responsable.kinesiologia.atencion') }}" class="slide-item">Atención</a></li>
-                                        <li><a href="{{ route('responsable.kinesiologia.reportes') }}" class="slide-item">Reportes Kinesiología</a></li>
-                                    </ul>
-                                </li>
-                                @endif
+                                {{-- Se elimina el bloque de Kinesiología porque se unificó con Fisioterapia --}}
                             @endif
                         </ul>
 

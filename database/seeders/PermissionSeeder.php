@@ -30,11 +30,6 @@ class PermissionSeeder extends Seeder
             ['name' => 'adulto_mayor.edit', 'description' => 'Permite editar la información de un adulto mayor existente.'],
             ['name' => 'adulto_mayor.delete', 'description' => 'Permite eliminar un adulto mayor.'],
 
-            // Permisos Asistente Social
-            ['name' => 'asistente_social.create', 'description' => 'Permite registrar un asistente social.'],
-            ['name' => 'asistente_social.view', 'description' => 'Permite ver asistentes sociales.'],
-            // Podrías añadir .edit y .delete si es necesario
-
             // Permisos Usuario Legal
             ['name' => 'usuario_legal.create', 'description' => 'Permite registrar un usuario legal.'],
             ['name' => 'usuario_legal.view', 'description' => 'Permite ver usuarios legales.'],

@@ -103,8 +103,7 @@ class LoginController extends Controller
                 return redirect()->route('responsable.dashboard');
             case 'legal':
                 return redirect()->route('legal.dashboard');
-            case 'asistente-social':
-                return redirect()->route('asistente-social.dashboard');
+            // El caso para 'asistente-social' ha sido eliminado.
             default:
                 Log::error("Rol no reconocido '{$roleName}' para el usuario CI: {$user->ci}. Cerrando sesión.");
                 Auth::logout();

@@ -128,6 +128,8 @@
                                                             <option value="" disabled {{ old('area_especialidad') ? '' : 'selected' }}>Seleccione una especialidad...</option>
                                                             <option value="Enfermeria" {{ old('area_especialidad') == 'Enfermeria' ? 'selected' : '' }}>Enfermería</option>
                                                             <option value="Fisioterapia-Kinesiologia" {{ old('area_especialidad') == 'Fisioterapia-Kinesiologia' ? 'selected' : '' }}>Fisioterapia-Kinesiología</option>
+                                                            {{-- ESTA ES LA LÍNEA QUE SE AÑADIÓ --}}
+                                                            <option value="otro" {{ old('area_especialidad') == 'otro' ? 'selected' : '' }}>Otro</option>
                                                         </select>
                                                         <div class="invalid-feedback">Por favor, seleccione un área de especialidad.</div>
                                                     </div>

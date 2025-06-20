@@ -37,7 +37,7 @@ Corrección: Se han ajustado los nombres de las rutas para que coincidan con el 
     <ul class="slide-menu">
         <li class="side-menu-label1"><a href="javascript:void(0)">Registrar Personal</a></li>
         <!-- {{-- CORREGIDO: Rutas de registro --}} -->
-        <li><a href="{{ route('admin.registrar-asistente-social') }}" class="slide-item">Asistente Social</a></li>
+        <!-- Se elimina el enlace para registrar Asistente Social -->
         <li><a href="{{ route('admin.registrar-usuario-legal') }}" class="slide-item">Área Legal</a></li>
         <li><a href="{{ route('admin.registrar-responsable-salud') }}" class="slide-item">Responsable de Salud</a></li>
     </ul>

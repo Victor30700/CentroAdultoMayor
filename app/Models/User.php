@@ -156,7 +156,6 @@ class User extends Authenticatable
             1 => 'admin',
             2 => 'responsable',
             3 => 'legal',
-            4 => 'asistente-social'
         ];
 
         return $roles[$this->id_rol] ?? 'sin-rol';

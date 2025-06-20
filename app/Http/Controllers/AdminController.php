@@ -75,11 +75,11 @@ class AdminController extends Controller
         return back()->with('success', "Usuario {$status} exitosamente.");
     }
 
-    /** Mostrar formularios de registro **/
+    /** Mostrar formularios de registro *
     public function showRegisterAsistenteSocial()
     {
         return view('Admin.registerUsers.registerAsistsocial.registerAsistsocial');
-    }
+    }*/
 
     public function showRegisterLegal()
     {
@@ -98,7 +98,7 @@ class AdminController extends Controller
         // return view('Admin.registerUsers.registerResponsable.registerRes', compact('roles'));
         return view('Admin.registerUsers.registerResponsable.registerRes');
     }
-
+/*
 public function storeAsistenteSocial(Request $request)
 {
     // Logging para depuración
@@ -225,7 +225,7 @@ public function storeAsistenteSocial(Request $request)
             ->withInput();
     }
 }
-
+*/
     public function storeUsuarioLegal(Request $request)
     {
         Log::info('Iniciando registro de usuario legal', ['data' => $request->all()]);
@@ -734,7 +734,7 @@ public function storeAdultoMayor(Request $request)
         }
     }
     
-    // MÉTODO ACTUALIZADO PARA EL NUEVO FORMULARIO DE RESPONSABLE DE SALUD
+// MÉTODO ACTUALIZADO PARA EL NUEVO FORMULARIO DE RESPONSABLE DE SALUD
 public function storeResponsableSalud(Request $request)
 {
     $validator = Validator::make($request->all(), [
@@ -742,18 +742,20 @@ public function storeResponsableSalud(Request $request)
         'nombres' => 'required|string|max:255',
         'primer_apellido' => 'required|string|max:255',
         'segundo_apellido' => 'nullable|string|max:255',
-        'ci' => 'required|string|max:20|unique:persona,ci', // CI único en tabla persona
+        'ci' => 'required|string|max:20|unique:persona,ci',
         'fecha_nacimiento' => 'required|date|before_or_equal:today',
         'sexo' => 'required|string|in:F,M,O',
-        'estado_civil'    => 'required|string|in:casado,divorciado,soltero,otro',
+        'estado_civil' => 'required|string|in:casado,divorciado,soltero,otro',
         'domicilio' => 'required|string|max:255',
         'telefono' => 'required|string|max:20',
         'zona_comunidad' => 'nullable|string|max:100',
-        'area_especialidad' => 'required|string|in:Enfermeria,Fisioterapia,Kinesiologia', // Ahora requerido con opciones específicas
+        // CORRECCIÓN: Se actualiza la regla 'in' para que coincida con los valores de la base de datos.
+        'area_especialidad' => 'required|string|in:Enfermeria,Fisioterapia-Kinesiologia,otro',
 
         // Pestaña 2: Datos de Usuario (tabla 'users')
         'id_rol' => 'required|integer|exists:rol,id_rol',
         'password' => 'required|string|min:8|confirmed',
+        'terms_acceptance' => 'accepted' // Importante para validar el checkbox
     ], [
         // Mensajes personalizados
         'nombres.required' => 'El campo nombres es obligatorio.',
@@ -767,18 +769,19 @@ public function storeResponsableSalud(Request $request)
         'domicilio.required' => 'El domicilio es obligatorio.',
         'telefono.required' => 'El teléfono es obligatorio.',
         'area_especialidad.required' => 'El área de especialidad es obligatoria para el responsable de salud.',
-        'area_especialidad.in' => 'El área de especialidad debe ser una de las opciones válidas: Enfermeria, Fisioterapia, Kinesiologia.',
+        'area_especialidad.in' => 'El área de especialidad seleccionada no es válida.',
         'id_rol.required' => 'El rol es obligatorio.',
         'id_rol.exists' => 'El rol seleccionado no es válido.',
         'password.required' => 'La contraseña es obligatoria.',
         'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
         'password.confirmed' => 'La confirmación de contraseña no coincide.',
+        'terms_acceptance.accepted' => 'Debe aceptar los términos y condiciones.'
     ]);
 
     if ($validator->fails()) {
         return redirect()->back()
-                    ->withErrors($validator)
-                    ->withInput();
+                         ->withErrors($validator)
+                         ->withInput();
     }
 
     DB::beginTransaction();
@@ -800,7 +803,8 @@ public function storeResponsableSalud(Request $request)
             'domicilio' => $request->domicilio,
             'telefono' => $request->telefono,
             'zona_comunidad' => $request->zona_comunidad,
-            'area_especialidad' => $request->area_especialidad, // Agregar el campo área de especialidad
+            'area_especialidad' => $request->area_especialidad,
+            'area_especialidad_legal' => null, // Aseguramos que el otro campo de especialidad sea nulo
         ]);
 
         // 2. Crear Usuario
@@ -816,15 +820,16 @@ public function storeResponsableSalud(Request $request)
         DB::commit();
 
         return redirect()->route('admin.dashboard')
-                        ->with('success', 'Responsable de Salud registrado exitosamente.');
+                         ->with('success', 'Responsable de Salud registrado exitosamente.');
 
     } catch (\Exception $e) {
         DB::rollBack();
         Log::error('Error registrando responsable de salud: ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
         return redirect()->back()
-                        ->withErrors(['error_registro' => 'Ocurrió un error interno al registrar al responsable. Por favor, inténtelo más tarde.'])
-                        ->withInput();
+                         ->withErrors(['error_registro' => 'Ocurrió un error interno al registrar al responsable. Por favor, inténtelo más tarde.'])
+                         ->withInput();
     }
 }
+
 
 }

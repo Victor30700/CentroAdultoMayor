@@ -25,7 +25,6 @@ return new class extends Migration
             ['id_rol' => 1, 'nombre_rol' => 'admin', 'descripcion' => 'Administrador del sistema', 'active' => true, 'created_at' => now(), 'updated_at' => now()],
             ['id_rol' => 2, 'nombre_rol' => 'responsable', 'descripcion' => 'Responsable de casos', 'active' => true, 'created_at' => now(), 'updated_at' => now()],
             ['id_rol' => 3, 'nombre_rol' => 'legal', 'descripcion' => 'Asistente legal', 'active' => true, 'created_at' => now(), 'updated_at' => now()],
-            ['id_rol' => 4, 'nombre_rol' => 'asistente-social', 'descripcion' => 'Asistente social', 'active' => true, 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 

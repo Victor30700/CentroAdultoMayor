@@ -24,10 +24,11 @@ return new class extends Migration
             $table->string('telefono', 20)->nullable();
             $table->string('zona_comunidad', 150)->nullable();
 
-            // CORRECCIÓN: Se añade ->nullable() para permitir que uno de los dos campos esté vacío.
+            // --- CAMBIO CLAVE: Definición Unificada de Especialidades ---
+            // Especialidad para Rol Responsable (Salud)
             $table->enum('area_especialidad', ['Enfermeria', 'Fisioterapia-Kinesiologia', 'otro'])->nullable();
             
-            // CORRECCIÓN: Se añade ->nullable() para permitir que uno de los dos campos esté vacío.
+            // Especialidad para Rol Legal
             $table->enum('area_especialidad_legal', ['Asistente Social', 'Psicologia', 'Derecho'])->nullable();
             
             $table->timestamps();

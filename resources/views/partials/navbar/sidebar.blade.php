@@ -36,10 +36,6 @@ Se ha reestructurado para ser compatible con el diseño del menú.
                         @include('partials.menus.legal')
                         @break
 
-                    @case('asistente-social')
-                        @include('partials.menus.asistente_social')
-                        @break
-
                     @case('responsable')
                         @php
                             // Lógica para especialidades del rol responsable
@@ -48,7 +44,7 @@ Se ha reestructurado para ser compatible con el diseño del menú.
 
                         @if($especialidad === 'Enfermeria')
                             @include('partials.menus.responsable_enfermeria')
-                        @elseif($especialidad === 'Fisioterapia')
+                        @elseif($especialidad === 'Fisioterapia-Kinesiologia')
                             @include('partials.menus.responsable_fisioterapia')
                         @endif
                         {{-- Agrega más 'elseif' para otras especialidades si es necesario --}}

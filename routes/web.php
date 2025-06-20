@@ -7,7 +7,8 @@ use App\Http\Controllers\GestionarUsuariosController;
 use App\Http\Controllers\GestionarRolesController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Legal\LegalController;
-use App\Http\Controllers\AsistenteSocial\OrientacionController;
+// Se elimina la importación del controlador OrientacionController ya que no se usa.
+// use App\Http\Controllers\AsistenteSocial\OrientacionController; 
 // Nota: Si usas controladores específicos para responsables, descomenta o añádelos aquí.
 // use App\Http\Controllers\EnfermeriaController;
 // use App\Http\Controllers\FisioterapiaController;
@@ -35,15 +36,16 @@ Route::middleware('auth')->group(function () {
     // --- DASHBOARDS PARA CADA ROL ---
     Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard')->middleware('role:admin');
     Route::get('/legal/dashboard', [LegalController::class, 'dashboard'])->name('legal.dashboard')->middleware('role:admin,legal');
-    Route::get('/asistente-social/dashboard', fn() => view('pages.asistente-social.dashboard'))->name('asistente-social.dashboard')->middleware('role:admin,asistente-social');
     Route::get('/responsable/dashboard', fn() => view('pages.responsable.dashboard'))->name('responsable.dashboard')->middleware('role:admin,responsable');
+    // Se elimina la ruta del dashboard del asistente social.
 
     // =========================================================================================
     // === INICIO DE LA REESTRUCTURACIÓN: RUTAS COMPARTIDAS Y ESPECÍFICAS POR ROL ===
     // =========================================================================================
 
-    // --- GRUPO DE RUTAS DE GESTIÓN DE ADULTOS MAYORES (Accesible por admin, legal y asistente-social) ---
-    Route::prefix('gestionar-adultos-mayores')->name('gestionar-adultomayor.')->middleware('role:admin,legal,asistente-social')->group(function () {
+    // --- GRUPO DE RUTAS DE GESTIÓN DE ADULTOS MAYORES (Accesible por admin y legal) ---
+    // Se elimina 'asistente-social' del middleware de este grupo.
+    Route::prefix('gestionar-adultos-mayores')->name('gestionar-adultomayor.')->middleware('role:admin,legal')->group(function () {
         // --- Rutas estáticas ---
         Route::get('/', [AdminController::class, 'gestionarAdultoMayorIndex'])->name('index');
         Route::get('/crear', [AdminController::class, 'showRegisterAdultoMayor'])->name('create');
@@ -64,8 +66,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('gestionar-roles', GestionarRolesController::class)->except(['show']);
 
         // Rutas de registro de personal (solo admin)
-        Route::get('/registrar-asistente-social', [AdminController::class, 'showRegisterAsistenteSocial'])->name('registrar-asistente-social');
-        Route::post('/store-asistente-social', [AdminController::class, 'storeAsistenteSocial'])->name('store-asistente-social');
+        // Se eliminan las rutas para registrar un nuevo asistente social.
         Route::get('/registrar-usuario-legal', [AdminController::class, 'showRegisterLegal'])->name('registrar-usuario-legal');
         Route::post('/store-legal', [AdminController::class, 'storeUsuarioLegal'])->name('store-legal');
         Route::get('/registrar-responsable-salud', [AdminController::class, 'showRegisterResponsableSalud'])->name('registrar-responsable-salud');
@@ -81,13 +82,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/proteccion/reportes', [LegalController::class, 'proteccionReportes'])->name('proteccion.reportes');
     });
 
-    // --- GRUPO DE RUTAS PARA ASISTENTE SOCIAL (y admin) ---
-    Route::prefix('asistente-social')->name('asistente-social.')->middleware('role:admin,asistente-social')->group(function () {
-        Route::prefix('orientacion')->name('orientacion.')->group(function () {
-            Route::get('/registrar-ficha', [OrientacionController::class, 'create'])->name('registrar-ficha');
-            Route::get('/reportes', [OrientacionController::class, 'reportes'])->name('reportes');
-        });
-    });
+    // Se elimina por completo el grupo de rutas para 'asistente-social'.
 
     // --- GRUPO DE RUTAS PARA RESPONSABLE (y admin) ---
     Route::prefix('responsable')->name('responsable.')->middleware('role:admin,responsable')->group(function () {
@@ -99,13 +94,13 @@ Route::middleware('auth')->group(function () {
         });
 
         // Rutas de Fisioterapia (protegidas por especialidad)
-        Route::prefix('fisioterapia')->name('fisioterapia.')->middleware('especialidad:Fisioterapia')->group(function () {
+        Route::prefix('fisioterapia')->name('fisioterapia.')->middleware('especialidad:Fisioterapia-Kinesiologia')->group(function () {
             Route::get('/atencion', function() { return "Página de Atención de Fisioterapia"; })->name('atencion');
             Route::get('/reportes', function() { return "Página de Reportes de Fisioterapia"; })->name('reportes');
         });
 
         // Rutas de Kinesiología (protegidas por especialidad)
-        Route::prefix('kinesiologia')->name('kinesiologia.')->middleware('especialidad:Kinesiologia')->group(function () {
+        Route::prefix('kinesiologia')->name('kinesiologia.')->middleware('especialidad:Fisioterapia-Kinesiologia')->group(function () {
             Route::get('/atencion', function() { return "Página de Atención de Kinesiología"; })->name('atencion');
             Route::get('/reportes', function() { return "Página de Reportes de Kinesiología"; })->name('reportes');
         });

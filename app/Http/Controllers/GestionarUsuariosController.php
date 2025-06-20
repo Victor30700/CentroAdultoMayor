@@ -81,23 +81,30 @@ class GestionarUsuariosController extends Controller
             'zona_comunidad' => 'nullable|string|max:100',
             'password' => 'nullable|string|min:8|confirmed',
         ];
-        
+
         // No permitir cambiar el rol de 'adulto_mayor'
         if (optional($user->rol)->nombre_rol !== 'adulto_mayor') {
             $rules['id_rol'] = ['required', 'integer', Rule::exists('rol', 'id_rol')];
         }
 
-        // Validación dinámica para area_especialidad según el rol
+        // Validación dinámica para las especialidades según el rol
         $rolId = $request->input('id_rol', $user->id_rol); // Usa el rol enviado o el actual
-        if ($rolId == 2) { // Rol Responsable de Salud
+
+        // <-- CAMBIO CLAVE: Lógica de validación separada para cada rol -->
+        if ($rolId == 2) { // Rol Responsable de Salud (ID 2)
             $rules['area_especialidad'] = 'required|string|in:Enfermeria,Fisioterapia-Kinesiologia,otro';
-        } elseif ($rolId == 3) { // Rol Legal
-            $rules['area_especialidad'] = 'required|string|in:Asistente Social,Psicologia,Derecho';
+            $rules['area_especialidad_legal'] = 'nullable|string'; // Asegurarse de que el otro campo sea nulo
+        } elseif ($rolId == 3) { // Rol Legal (ID 3)
+            $rules['area_especialidad_legal'] = 'required|string|in:Asistente Social,Psicologia,Derecho';
+            $rules['area_especialidad'] = 'nullable|string'; // Asegurarse de que el otro campo sea nulo
         } else {
-            $rules['area_especialidad'] = 'nullable|string'; // No requerido para otros roles
+            // Para otros roles, ambos campos son opcionales/nulos
+            $rules['area_especialidad'] = 'nullable|string';
+            $rules['area_especialidad_legal'] = 'nullable|string';
         }
-        
-        $validator = Validator::make($request->all(), $rules, [
+
+        // <-- CAMBIO CLAVE: Mensajes de validación para ambos campos -->
+        $messages = [
             'nombres.required' => 'El nombre es obligatorio.',
             'primer_apellido.required' => 'El primer apellido es obligatorio.',
             'fecha_nacimiento.required' => 'La fecha de nacimiento es obligatoria.',
@@ -108,9 +115,13 @@ class GestionarUsuariosController extends Controller
             'id_rol.required' => 'El rol es obligatorio.',
             'password.min' => 'La nueva contraseña debe tener al menos 8 caracteres.',
             'password.confirmed' => 'La confirmación de la contraseña no coincide.',
-            'area_especialidad.required' => 'El área de especialidad es obligatoria para el rol seleccionado.',
-            'area_especialidad.in' => 'El valor de la especialidad no es válido para el rol seleccionado.',
-        ]);
+            'area_especialidad.required' => 'El área de especialidad de salud es obligatoria para el rol seleccionado.',
+            'area_especialidad_legal.required' => 'El área de especialidad legal es obligatoria para el rol seleccionado.',
+            'area_especialidad.in' => 'El valor de la especialidad de salud no es válido.',
+            'area_especialidad_legal.in' => 'El valor de la especialidad legal no es válido.',
+        ];
+
+        $validator = Validator::make($request->all(), $rules, $messages);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
@@ -125,14 +136,20 @@ class GestionarUsuariosController extends Controller
                     'sexo', 'estado_civil', 'domicilio', 'telefono', 'zona_comunidad'
                 ]);
                 $personaData['edad'] = Carbon::parse($request->fecha_nacimiento)->age;
-                
-                // Actualizar area_especialidad si el rol lo requiere, de lo contrario, poner a null
-                if ($rolId == 2 || $rolId == 3) {
+
+                // <-- CAMBIO CLAVE: Lógica de guardado condicional para especialidades -->
+                if ($rolId == 2) { // Rol Salud
                     $personaData['area_especialidad'] = $request->input('area_especialidad');
+                    $personaData['area_especialidad_legal'] = null; // Limpiar el otro campo
+                } elseif ($rolId == 3) { // Rol Legal
+                    $personaData['area_especialidad_legal'] = $request->input('area_especialidad_legal');
+                    $personaData['area_especialidad'] = null; // Limpiar el otro campo
                 } else {
+                    // Si no es un rol con especialidad, limpiar ambos campos
                     $personaData['area_especialidad'] = null;
+                    $personaData['area_especialidad_legal'] = null;
                 }
-                
+
                 $persona->update($personaData);
             }
 
@@ -142,7 +159,7 @@ class GestionarUsuariosController extends Controller
             ];
             // Solo actualiza el rol si no es 'adulto_mayor'
             if (optional($user->rol)->nombre_rol !== 'adulto_mayor') {
-                 $userData['id_rol'] = $request->id_rol;
+                $userData['id_rol'] = $request->id_rol;
             }
             if ($request->filled('password')) {
                 $userData['password'] = Hash::make($request->password);
@@ -157,7 +174,6 @@ class GestionarUsuariosController extends Controller
             return redirect()->back()->with('error', 'Ocurrió un error al actualizar el usuario.')->withInput();
         }
     }
-
 
     /**
      * Elimina un usuario específico de la base de datos (eliminación lógica).
