@@ -1,6 +1,4 @@
 <?php
-// database/seeders/RolePermissionSeeder.php
-// Puedes generar este seeder con: php artisan make:seeder RolePermissionSeeder
 
 namespace Database\Seeders;
 
@@ -11,58 +9,50 @@ use Illuminate\Support\Facades\DB;
 
 class RolePermissionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Obtener roles y permisos. Asegúrate que los roles y permisos ya existan (ejecuta sus seeders primero)
+        // Obtener los roles
         $adminRole = Rol::where('nombre_rol', 'admin')->first();
         $responsableRole = Rol::where('nombre_rol', 'responsable')->first();
-        // Añade otros roles si es necesario
-        // $legalRole = Rol::where('nombre_rol', 'legal')->first();
-        // $asistenteSocialRole = Rol::where('nombre_rol', 'asistente-social')->first();
+        $legalRole = Rol::where('nombre_rol', 'legal')->first();
 
-        if (!$adminRole || !$responsableRole) {
-            $this->command->error('No se encontraron los roles "admin" o "responsable". Asegúrate de ejecutar el seeder de roles primero.');
-            return;
-        }
-
-        // Permisos para el rol de Administrador
-        $adminPermissions = Permission::pluck('id')->toArray(); // Todos los permisos
+        // --- 1. Permisos para Administrador (TODOS) ---
         if ($adminRole) {
-            $adminRole->permissions()->sync($adminPermissions); // sync() es útil para evitar duplicados
-            $this->command->info('Permisos asignados al rol de Administrador.');
+            // Asigna todos los permisos existentes al rol de admin
+            $allPermissions = Permission::pluck('id');
+            $adminRole->permissions()->sync($allPermissions);
+            $this->command->info('Todos los permisos han sido asignados al rol "admin".');
         }
 
-
-        // Permisos para el rol de Responsable de Salud
-        $responsablePermissionsNames = [
-            'dashboard.view',
-            'adulto_mayor.view',
-            'adulto_mayor.create',
-        ];
-        $responsablePermissions = Permission::whereIn('name', $responsablePermissionsNames)->pluck('id');
-        if ($responsableRole) {
-            $responsableRole->permissions()->sync($responsablePermissions);
-            $this->command->info('Permisos asignados al rol de Responsable de Salud.');
-        }
-
-        // Aquí puedes asignar permisos a otros roles (legal, asistente-social) si los defines
-        // Ejemplo para rol 'legal'
-        /*
+        // --- 2. Permisos para Rol Legal ---
         if ($legalRole) {
-            $legalPermissionsNames = [
+            $legalPermissions = Permission::whereIn('name', [
                 'dashboard.view',
-                'adulto_mayor.view', // Quizás solo ver, no crear
-                'usuario_legal.view',
-                'usuario_legal.create',
-            ];
-            $legalPermissions = Permission::whereIn('name', $legalPermissionsNames)->pluck('id');
+                'adulto_mayor.view',
+                'adulto_mayor.create',
+                'adulto_mayor.edit',
+                'adulto_mayor.delete',
+                'proteccion.view',
+                'proteccion.create',
+                'proteccion.edit',
+                'proteccion.delete',
+                'proteccion.reportes',
+            ])->pluck('id');
             $legalRole->permissions()->sync($legalPermissions);
-            $this->command->info('Permisos asignados al rol Legal.');
+            $this->command->info('Permisos específicos asignados al rol "legal".');
         }
-        */
+
+        // --- 3. Permisos para Rol Responsable de Salud ---
+        if ($responsableRole) {
+            $responsablePermissions = Permission::whereIn('name', [
+                'dashboard.view',
+                'salud.view',
+                'salud.servicios',
+                'salud.historias',
+                'salud.reportes',
+            ])->pluck('id');
+            $responsableRole->permissions()->sync($responsablePermissions);
+            $this->command->info('Permisos específicos asignados al rol "responsable".');
+        }
     }
 }
-?>

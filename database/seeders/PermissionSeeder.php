@@ -1,6 +1,4 @@
 <?php
-// database/seeders/PermissionSeeder.php
-// Puedes generar este seeder con: php artisan make:seeder PermissionSeeder
 
 namespace Database\Seeders;
 
@@ -10,48 +8,50 @@ use Illuminate\Support\Facades\DB;
 
 class PermissionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Vaciar la tabla primero si se ejecuta múltiples veces para evitar duplicados
-        // DB::statement('SET FOREIGN_KEY_CHECKS=0;'); // Desactivar revisión de FK temporalmente si es necesario
-        // Permission::truncate(); // Cuidado con esto en producción si ya hay datos relacionados
-        // DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-
+        // Para evitar duplicados, solo insertaremos si no existen.
         $permissions = [
-            // Permisos generales
-            ['name' => 'dashboard.view', 'description' => 'Permite ver el dashboard principal de su rol.'],
+            // Dashboard
+            ['name' => 'dashboard.view', 'description' => 'Ver el dashboard principal'],
 
-            // Permisos Adulto Mayor
-            ['name' => 'adulto_mayor.view', 'description' => 'Permite ver la lista o detalles de adultos mayores.'],
-            ['name' => 'adulto_mayor.create', 'description' => 'Permite registrar un nuevo adulto mayor.'],
-            ['name' => 'adulto_mayor.edit', 'description' => 'Permite editar la información de un adulto mayor existente.'],
-            ['name' => 'adulto_mayor.delete', 'description' => 'Permite eliminar un adulto mayor.'],
+            // Gestión de Roles (La clave para tu problema)
+            ['name' => 'roles.view', 'description' => 'Ver lista de roles'],
+            ['name' => 'roles.create', 'description' => 'Crear nuevos roles'],
+            ['name' => 'roles.edit', 'description' => 'Editar roles existentes'],
+            ['name' => 'roles.delete', 'description' => 'Eliminar roles'],
 
-            // Permisos Usuario Legal
-            ['name' => 'usuario_legal.create', 'description' => 'Permite registrar un usuario legal.'],
-            ['name' => 'usuario_legal.view', 'description' => 'Permite ver usuarios legales.'],
-            // Podrías añadir .edit y .delete si es necesario
+            // Gestión de Usuarios
+            ['name' => 'users.view', 'description' => 'Ver lista de usuarios'],
+            ['name' => 'users.create', 'description' => 'Crear nuevos usuarios (registrar personal)'],
+            ['name' => 'users.edit', 'description' => 'Editar usuarios existentes'],
+            ['name' => 'users.delete', 'description' => 'Eliminar usuarios'],
+            ['name' => 'users.toggle_activity', 'description' => 'Activar/Desactivar usuarios'],
 
-            // Permisos Responsable Salud (si son distintos a los de 'usuario')
-            ['name' => 'responsable_salud.create', 'description' => 'Permite registrar un responsable de salud.'],
-            ['name' => 'responsable_salud.view', 'description' => 'Permite ver responsables de salud.'],
-            // Podrías añadir .edit y .delete si es necesario
+            // Gestión de Pacientes (Adulto Mayor)
+            ['name' => 'adulto_mayor.view', 'description' => 'Ver lista de pacientes'],
+            ['name' => 'adulto_mayor.create', 'description' => 'Registrar nuevos pacientes'],
+            ['name' => 'adulto_mayor.edit', 'description' => 'Editar pacientes existentes'],
+            ['name' => 'adulto_mayor.delete', 'description' => 'Eliminar pacientes'],
 
-            // Permisos para Gestionar Usuarios (tabla 'usuario')
-            ['name' => 'users.view', 'description' => 'Permite ver la lista de todos los usuarios del sistema.'],
-            ['name' => 'users.toggle_active', 'description' => 'Permite activar/desactivar usuarios.'],
-            ['name' => 'users.edit_roles', 'description' => 'Permite modificar los roles de los usuarios.'],
-            // Podrías añadir users.create, users.edit, users.delete si es necesario
+            // Módulo de Protección (Legal)
+            ['name' => 'proteccion.view', 'description' => 'Ver casos de protección'],
+            ['name' => 'proteccion.create', 'description' => 'Registrar nuevos casos de protección'],
+            ['name' => 'proteccion.edit', 'description' => 'Editar casos de protección'],
+            ['name' => 'proteccion.delete', 'description' => 'Eliminar casos de protección'],
+            ['name' => 'proteccion.reportes', 'description' => 'Ver reportes de protección'],
+
+            // Módulo de Responsable de Salud (Enfermería, Fisio, etc.)
+            ['name' => 'salud.view', 'description' => 'Ver módulos de salud'],
+            ['name' => 'salud.servicios', 'description' => 'Acceder a servicios médicos'],
+            ['name' => 'salud.historias', 'description' => 'Acceder a historias clínicas'],
+            ['name' => 'salud.reportes', 'description' => 'Ver reportes de salud'],
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission['name']], $permission);
         }
 
-        $this->command->info(count($permissions) . ' permisos creados/verificados exitosamente.');
+        $this->command->info(count($permissions) . ' permisos han sido creados o verificados exitosamente.');
     }
 }
-?>

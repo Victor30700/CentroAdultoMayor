@@ -1,14 +1,13 @@
 {{-- resources/views/Admin/gestionarRoles/index.blade.php --}}
 @extends('layouts.main')
 
-@section('content')
-<head>
+@section('styles')
+    {{-- Estilos específicos para esta página --}}
     <link rel="stylesheet" href="{{ asset('css/gestionarRoles.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-    {{-- Cargamos DataTables --}}
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.11.5/datatables.min.css"/>
-</head>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/dt-1.11.5/datatables.min.css"/>
+@endsection
 
+@section('content')
 <div class="page">
     <div class="page-main">
         <div class="main-content app-content mt-0">
@@ -32,9 +31,8 @@
                             <span>{{ session('success') }}</span>
                         </div>
                     @endif
-
                     @if (session('error'))
-                        <div class="alert alert-error" role="alert">
+                        <div class="alert alert-danger" role="alert">
                             <strong>¡Error!</strong>
                             <span>{{ session('error') }}</span>
                         </div>
@@ -43,26 +41,28 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="card">
-                                <div class="card-header bg-primary text-white">
-                                    <h3 class="card-title text-white">Listado de Roles del Sistema</h3>
-                                    <div class="card-options">
+                                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        {{-- Botón ahora a la izquierda del título. Se mostrará porque AuthServiceProvider funciona --}}
                                         @can('roles.create')
-                                            <a href="{{ route('admin.gestionar-roles.create') }}" class="btn btn-white btn-sm">
-                                                <i data-feather="plus-circle"></i> Agregar Nuevo Rol
+                                            <a href="{{ route('admin.gestionar-roles.create') }}" class="btn btn-light btn-sm me-3">
+                                                <i data-feather="plus-circle" class="me-1"></i>Agregar Rol
                                             </a>
                                         @endcan
+                                        <h3 class="card-title text-white mb-0">Listado de Roles del Sistema</h3>
                                     </div>
+                                    {{-- Espacio a la derecha para futuros elementos como filtros o buscador --}}
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
-                                        <table id="rolesTable" class="table table-bordered table-striped">
+                                        <table id="rolesTable" class="table table-bordered table-striped w-100">
                                             <thead>
                                                 <tr>
                                                     <th>ID</th>
                                                     <th>Nombre del Rol</th>
                                                     <th>Descripción</th>
-                                                    <th>Permisos Asignados</th>
-                                                    <th>Usuarios con este Rol</th>
+                                                    <th>Permisos</th>
+                                                    <th>Usuarios</th>
                                                     <th>Estado</th>
                                                     <th>Acciones</th>
                                                 </tr>
@@ -92,38 +92,22 @@
                                                         </td>
                                                         <td>
                                                             <div class="btn-group" role="group">
-                                                                {{-- Botón para editar rol --}}
                                                                 @can('roles.edit')
-                                                                    <a href="{{ route('admin.gestionar-roles.edit', $rol->id_rol) }}" 
-                                                                       class="btn btn-sm btn-info" 
-                                                                       data-bs-toggle="tooltip" 
-                                                                       title="Editar">
+                                                                    <a href="{{ route('admin.gestionar-roles.edit', $rol->id_rol) }}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Editar">
                                                                         <i class="fe fe-edit"></i>
                                                                     </a>
                                                                 @endcan
-
-                                                                {{-- Formulario para eliminar rol --}}
                                                                 @can('roles.delete')
-                                                                    @if (strtolower($rol->nombre_rol) !== 'admin' && strtolower($rol->nombre_rol) !== 'administrador')
-                                                                        <form action="{{ route('admin.gestionar-roles.destroy', $rol->id_rol) }}" 
-                                                                              method="POST" 
-                                                                              class="d-inline"
-                                                                              onsubmit="return showCustomConfirm(event, '¿Está seguro de eliminar este rol? Esta acción no se puede deshacer.', this)">
+                                                                    @if (!in_array(strtolower($rol->nombre_rol), ['admin', 'administrador']))
+                                                                        <form action="{{ route('admin.gestionar-roles.destroy', $rol->id_rol) }}" method="POST" class="d-inline" onsubmit="return showCustomConfirm(event, '¿Está seguro de que desea eliminar este rol? Esta acción no se puede deshacer.', this)">
                                                                             @csrf
                                                                             @method('DELETE')
-                                                                            <button type="submit" 
-                                                                                    class="btn btn-sm btn-danger" 
-                                                                                    data-bs-toggle="tooltip" 
-                                                                                    title="Eliminar Rol">
+                                                                            <button type="submit" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="Eliminar Rol">
                                                                                 <i class="fe fe-trash-2"></i>
                                                                             </button>
                                                                         </form>
                                                                     @else
-                                                                        <button type="button" 
-                                                                                class="btn btn-sm btn-secondary" 
-                                                                                data-bs-toggle="tooltip" 
-                                                                                title="No se puede eliminar este rol" 
-                                                                                disabled>
+                                                                        <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="tooltip" title="No se puede eliminar este rol" disabled>
                                                                             <i class="fe fe-trash-2"></i>
                                                                         </button>
                                                                     @endif
@@ -134,8 +118,7 @@
                                                 @empty
                                                     <tr>
                                                         <td colspan="7" class="text-center text-muted">
-                                                            <i class="fe fe-inbox"></i>
-                                                            <br>
+                                                            <i class="fe fe-inbox"></i><br>
                                                             No hay roles registrados
                                                         </td>
                                                     </tr>
@@ -143,13 +126,6 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    
-                                    {{-- Paginación si está disponible --}}
-                                    @if(method_exists($roles, 'links') && $roles->hasPages())
-                                        <div class="d-flex justify-content-center mt-3">
-                                            {{ $roles->links() }}
-                                        </div>
-                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -176,92 +152,47 @@
         </div>
     </div>
 </div>
-
 @endsection
 
 @push('scripts')
-<script src="https://cdn.datatables.net/v/dt/dt-1.11.5/datatables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs5/dt-1.11.5/datatables.min.js"></script>
 <script>
-    // Inicializar Feather Icons
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof feather !== 'undefined') {
             feather.replace();
         }
         
-        // Inicialización de DataTables
         if (typeof $().DataTable === 'function') {
             $('#rolesTable').DataTable({
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json'
                 },
                 responsive: true,
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: true,
-                pageLength: 25,
-                order: [[0, 'asc']], // Ordenar por ID ascendente
+                order: [[0, 'asc']],
+                dom: 'lfrtip', // Quitando los botones de exportación para un look más limpio
                 columnDefs: [
-                    {
-                        targets: [6], // Columna de acciones
-                        orderable: false,
-                        searchable: false
-                    }
-                ],
-                dom: 'Bfrtip',
-                buttons: [
-                    {
-                        extend: 'excel',
-                        text: '<i class="fe fe-download"></i> Excel',
-                        className: 'btn btn-success btn-sm'
-                    },
-                    {
-                        extend: 'pdf',
-                        text: '<i class="fe fe-file-text"></i> PDF',
-                        className: 'btn btn-danger btn-sm'
-                    },
-                    {
-                        extend: 'print',
-                        text: '<i class="fe fe-printer"></i> Imprimir',
-                        className: 'btn btn-info btn-sm'
-                    }
+                    { targets: [3, 4, 5, 6], orderable: false, searchable: false }
                 ]
             });
         }
     });
 
-    // --- Funciones para el Modal de Confirmación Personalizado ---
     let currentConfirmForm = null;
-
     function showCustomConfirm(event, message, form) {
         event.preventDefault();
         currentConfirmForm = form;
-
-        const overlay = document.getElementById('customConfirmModalOverlay');
-        const msgElement = document.getElementById('customConfirmMessage');
-        const confirmBtn = document.getElementById('customConfirmBtn');
-
-        msgElement.textContent = message;
-        
-        confirmBtn.onclick = function() {
-            if (currentConfirmForm) {
-                currentConfirmForm.submit();
-                hideCustomConfirm();
-            }
-        };
-
-        overlay.classList.add('show');
-        return false;
+        document.getElementById('customConfirmMessage').textContent = message;
+        document.getElementById('customConfirmModalOverlay').classList.add('show');
     }
-
     function hideCustomConfirm() {
-        const overlay = document.getElementById('customConfirmModalOverlay');
-        overlay.classList.remove('show');
+        document.getElementById('customConfirmModalOverlay').classList.remove('show');
         currentConfirmForm = null;
     }
-
-    // --- Función para ver detalles del rol ---
-    // Esta función ya no es necesaria ya que se removió el botón de ver detalles
-    // function viewRole(roleId) { ... }
+    document.getElementById('customConfirmBtn').onclick = function() {
+        if (currentConfirmForm) {
+            currentConfirmForm.submit();
+        }
+    };
 </script>
 @endpush
