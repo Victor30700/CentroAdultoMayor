@@ -1,18 +1,18 @@
 <?php
-// app/Models/Permission.php
-// Puedes generar este modelo con: php artisan make:model Permission
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Rol;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Permission extends Model
 {
     use HasFactory;
 
-    protected $table = 'permissions'; // Asumimos que la tabla se llama 'permissions'
+    protected $table = 'permissions';
+    public $timestamps = false; // Tu tabla 'permissions' no tiene timestamps
+
     protected $fillable = [
         'name',
         'description',
@@ -20,14 +20,19 @@ class Permission extends Model
 
     /**
      * Los roles que tienen este permiso.
+     * CORRECCIÓN VITAL: Se añaden los dos últimos parámetros a la relación belongsToMany.
+     * - 'id': Es la clave primaria de este modelo (Permission).
+     * - 'id_rol': Es la clave primaria del modelo relacionado (Rol).
      */
-    public function roles()
+    public function roles(): BelongsToMany
     {
         return $this->belongsToMany(
             Rol::class,
-            'permission_role',
-            'permission_id',
-            'role_id'
+            'permission_role', // Tabla pivote
+            'permission_id',   // Clave foránea de Permission en la tabla pivote
+            'role_id',         // Clave foránea de Rol en la tabla pivote
+            'id',              // Clave primaria de este modelo (Permission)
+            'id_rol'           // Clave primaria del modelo relacionado (Rol)
         );
     }
 }

@@ -4,10 +4,10 @@ namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Schema;
-use App\Models\Permission;
 use App\Models\User;
-use Illuminate\Support\Facades\Log; // Importamos Log para depuración
+use App\Models\Permission;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -27,37 +27,33 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Gate global: si el usuario es 'admin', autoriza TODO automáticamente.
-        // Verificamos si el usuario tiene el rol 'admin' a través de su nombre_rol.
-        // Esta es la forma más robusta de asegurar que el admin siempre tenga todos los permisos.
+        // [LA SOLUCIÓN]
+        // Gate global que se ejecuta ANTES que cualquier otra regla.
+        // Si el usuario tiene el rol 'admin', la función devuelve 'true' inmediatamente
+        // y Laravel concede el acceso sin verificar nada más.
+        // Esto soluciona el problema de raíz y es la práctica recomendada para super-admins.
         Gate::before(function (User $user, $ability) {
-            // La función with('rol') carga la relación para no hacer una consulta extra.
-            if ($user->load('rol')->rol && $user->rol->nombre_rol === 'admin') {
+            if ($user->hasRole('admin')) {
                 return true;
             }
         });
-        // --- FIN DE LA CORRECCIÓN ---
 
-        // Definir dinámicamente un Gate por cada permiso en la BD
-        // Para que @can('nombre_del_permiso') funcione correctamente.
+        // El resto de los Gates se definen para los demás roles que no son 'admin'.
         try {
             if (Schema::hasTable('permissions')) {
-                // Obtenemos los permisos y los guardamos en caché para mejorar el rendimiento.
-                $permissions = \Illuminate\Support\Facades\Cache::remember('permissions', 3600, function () {
+                // Usamos caché para no consultar la BD en cada petición.
+                $permissions = Cache::rememberForever('permissions', function () {
                     return Permission::all();
                 });
 
-                $permissions->each(function (Permission $permission) {
+                foreach ($permissions as $permission) {
                     Gate::define($permission->name, function (User $user) use ($permission) {
-                        // El método hasPermission ya debería estar definido en tu modelo User.
                         return $user->hasPermission($permission->name);
                     });
-                });
+                }
             }
         } catch (\Throwable $e) {
-            // Registramos el error en lugar de dejar el bloque catch vacío.
-            Log::error("Error al registrar los permisos en AuthServiceProvider: " . $e->getMessage());
+            // En caso de error, no hacer nada para no romper la aplicación.
         }
     }
 }

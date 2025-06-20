@@ -43,7 +43,7 @@
                             <div class="card">
                                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                                     <div class="d-flex align-items-center">
-                                        {{-- Botón ahora a la izquierda del título. Se mostrará porque AuthServiceProvider funciona --}}
+                                        {{-- Este botón ahora se mostrará correctamente --}}
                                         @can('roles.create')
                                             <a href="{{ route('admin.gestionar-roles.create') }}" class="btn btn-light btn-sm me-3">
                                                 <i data-feather="plus-circle" class="me-1"></i>Agregar Rol
@@ -51,7 +51,6 @@
                                         @endcan
                                         <h3 class="card-title text-white mb-0">Listado de Roles del Sistema</h3>
                                     </div>
-                                    {{-- Espacio a la derecha para futuros elementos como filtros o buscador --}}
                                 </div>
                                 <div class="card-body">
                                     <div class="table-responsive">
@@ -166,11 +165,12 @@
         if (typeof $().DataTable === 'function') {
             $('#rolesTable').DataTable({
                 language: {
-                    url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json'
+                    // [MEJORA] Se utiliza el archivo de traducción local para evitar errores de CORS.
+                    url: '{{ asset('assets/translates/Spanish.json') }}'
                 },
                 responsive: true,
                 order: [[0, 'asc']],
-                dom: 'lfrtip', // Quitando los botones de exportación para un look más limpio
+                dom: 'lfrtip',
                 columnDefs: [
                     { targets: [3, 4, 5, 6], orderable: false, searchable: false }
                 ]

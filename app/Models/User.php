@@ -6,11 +6,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Carbon\Carbon;
-
-// Se importa solo los modelos necesarios para las relaciones directas.
 use App\Models\Persona;
 use App\Models\Rol;
-// Permission ya no se necesita aquí porque la relación es a través del Rol.
 
 class User extends Authenticatable
 {
@@ -21,16 +18,20 @@ class User extends Authenticatable
     public $incrementing = true;
     protected $keyType = 'int';
 
+    /**
+     * CORRECCIÓN: Se alinea el `fillable` con las columnas de la migración 'create_usuario_table'.
+     * Esto es crucial para que la asignación masiva (ej. al crear un usuario) funcione correctamente.
+     */
     protected $fillable = [
-        'ci',
+        'id_persona',
         'id_rol',
+        'nombre_usuario',
+        'email',
         'password',
         'active',
         'login_attempts',
         'last_failed_login_at',
         'temporary_lockout_until',
-        'created_at',
-        'updated_at'
     ];
 
     protected $hidden = [
@@ -45,20 +46,22 @@ class User extends Authenticatable
         'temporary_lockout_until' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'email_verified_at' => 'datetime', // Se añade para seguir las convenciones de Laravel
     ];
 
     /**
-     * Relación con la tabla Persona (usando CI como clave foránea).
-     * Permite hacer Auth::user()->persona->...
+     * CORRECCIÓN: La relación con Persona debe usar la clave foránea 'id_persona' como
+     * se define en la migración. El segundo argumento es la clave foránea en la tabla `usuario`,
+     * y el tercero es la clave primaria en la tabla `persona`.
      */
     public function persona()
     {
-        return $this->belongsTo(Persona::class, 'ci', 'ci');
+        return $this->belongsTo(Persona::class, 'id_persona', 'id_persona');
     }
 
     /**
      * Relación con la tabla Rol.
-     * Permite hacer Auth::user()->rol->nombre_rol
+     * Esta relación ya era correcta.
      */
     public function rol()
     {
@@ -66,42 +69,29 @@ class User extends Authenticatable
     }
 
     /**
-     * [SOLUCIÓN DEFINITIVA]
      * Verifica si el usuario tiene un permiso específico a través de su rol.
-     * Esta es la forma correcta y eficiente de manejar los permisos.
-     *
-     * @param string $permissionName El nombre del permiso a verificar (e.g., 'roles.create').
-     * @return bool
+     * Este método es correcto y se mantiene sin cambios.
      */
     public function hasPermission(string $permissionName): bool
     {
-        // Si el usuario no tiene un rol asignado, no puede tener permisos.
         if (!$this->rol) {
             return false;
         }
-
-        // Carga los permisos del rol solo si no han sido cargados previamente (Eager Loading).
-        // Esto optimiza las consultas a la base de datos, evitando el problema N+1.
         $this->rol->loadMissing('permissions');
-
-        // Verifica si la colección de permisos del rol contiene el permiso que buscamos.
         return $this->rol->permissions->contains('name', $permissionName);
     }
 
     /**
-     * [SOLUCIÓN DEFINITIVA]
-     * Devuelve true si el usuario tiene el rol cuyo nombre es $roleName.
-     * Es insensible a mayúsculas/minúsculas.
+     * Verifica si el usuario tiene un rol específico por su nombre.
+     * Este método es correcto y se mantiene sin cambios.
      */
     public function hasRole(string $roleName): bool
     {
         return strtolower(optional($this->rol)->nombre_rol) === strtolower($roleName);
     }
 
-    //
     // --- SECCIÓN DE MANEJO DE LOGIN (SIN CAMBIOS) ---
     // Toda tu lógica original se mantiene intacta.
-    //
 
     public function incrementLoginAttempts()
     {
@@ -152,10 +142,8 @@ class User extends Authenticatable
         return 0;
     }
 
-    //
     // --- SECCIÓN DE SCOPES Y ATRIBUTOS (SIN CAMBIOS) ---
     // Toda tu lógica original se mantiene intacta.
-    //
 
     public function scopeActive($query)
     {
@@ -165,8 +153,8 @@ class User extends Authenticatable
     public function scopeTemporarilyLocked($query)
     {
         return $query->where('active', false)
-                     ->whereNotNull('temporary_lockout_until')
-                     ->where('temporary_lockout_until', '>', Carbon::now());
+                      ->whereNotNull('temporary_lockout_until')
+                      ->where('temporary_lockout_until', '>', Carbon::now());
     }
 
     public function getFullNameAttribute()
@@ -174,7 +162,7 @@ class User extends Authenticatable
         if ($this->persona) {
             return trim("{$this->persona->nombres} {$this->persona->primer_apellido} {$this->persona->segundo_apellido}");
         }
-
-        return "Usuario CI: {$this->ci}";
+        // Se ajusta el fallback en caso de que la persona no esté asociada.
+        return $this->nombre_usuario ?? "Usuario #{$this->id_usuario}";
     }
 }
